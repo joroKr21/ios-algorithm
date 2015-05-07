@@ -319,7 +319,10 @@ public class SingleThreadedTabuSearch extends TabuSearchBase
     final TabuSearch This )
     {
         // Set up variables
-        Move bestMove = moves[0];
+//        2
+        Move bestMove = moves[1];
+
+
         double[] bestMoveVal = {};
         boolean bestMoveTabu = false;
         

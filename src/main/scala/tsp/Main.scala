@@ -1,7 +1,7 @@
 package tsp
 
 import org.coinor.opents._
-import scala.util.Random
+import java.util.Random
 
 object Main extends App {
 
