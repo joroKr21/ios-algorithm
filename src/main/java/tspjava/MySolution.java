@@ -31,7 +31,7 @@ public class MySolution extends SolutionAdapter
         StringBuffer s = new StringBuffer();
         
         s.append( "Solution value: " + getObjectiveValue()[0] );
-        s.append( "Sequence: [ " );
+        s.append( " Sequence: [ " );
         
         for( int i = 0; i < tour.length - 1; i++ )
             s.append( tour[i] ).append( ", " );
