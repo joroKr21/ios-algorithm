@@ -1,5 +1,7 @@
 package assigner
 
+import org.coinor.opents.{SimpleTabuList, TabuList}
+
 object Assigner extends App {
 
   val students = List[Student](
@@ -21,33 +23,29 @@ object Assigner extends App {
     Project(Set(0, 1, 2), 4)
   )
 
+  // TODO: Add objective function
   val stableMatching = new StableMatching(students, groups)
+  // TODO: Add move-manager
+  val tabuList: TabuList = new SimpleTabuList(7)
 
-  val debug = true
-
-  //  val objFunc: ObjectiveFunction = new MyObjectiveFunction(customers)
-  //  val initialSolution: Solution = new MyGreedyStartSolution(customers)
-  //  val moveManager: MoveManager = new MyMoveManager
-  //  val tabuList: TabuList = new SimpleTabuList(7)
-  //
-  //  // Create Tabu Search object
+  //  Create Tabu Search object
   //  val tabuSearch: TabuSearch = new SingleThreadedTabuSearch(
-  //    initialSolution,
+  //    stableMatching,
   //    moveManager,
   //    objFunc,
   //    tabuList,
   //    new BestEverAspirationCriteria,
   //    false
   //  )
-  //
+
   //  // Start solving
   //  tabuSearch.setIterationsToGo(100)
   //  tabuSearch.startSolving()
-  //
+
   //  // Show solution
   //  val best: MySolution = tabuSearch.getBestSolution.asInstanceOf[MySolution]
   //  System.out.println("Best Solution:\n" + best)
-  //
+
   //  val tour: Array[Int] = best.tour
   //  for(i <- 0 until tour.length) {
   //    System.out.println(customers(tour(i))(0) + "\t" + customers(tour(i))(1))
