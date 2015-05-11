@@ -23,6 +23,8 @@ object Assigner extends App {
 
   val stableMatching = new StableMatching(students, groups)
 
+  val debug = true
+
   //  val objFunc: ObjectiveFunction = new MyObjectiveFunction(customers)
   //  val initialSolution: Solution = new MyGreedyStartSolution(customers)
   //  val moveManager: MoveManager = new MyMoveManager
