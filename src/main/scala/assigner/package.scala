@@ -1,3 +1,4 @@
+import scala.util.Random
 
 package object assigner {
   case class Student(id: Int, preferences: Set[Int], skills: Set[Int], friends: Set[Int], foes: Set[Int], mandatory: Boolean, group: Int = -1)
@@ -10,11 +11,16 @@ package object assigner {
     def addStudent(student: Student) : Boolean = {
       if(students.size == size) false
       else {
-        students.+=(student)
+        students += student
         true
       }
     }
   }
   case class Project(skills: Set[Int], size: Int) extends Group
   case class WaitingList(skills: Set[Int], size: Int) extends Group
+
+  implicit class RandomShuffle(val list: List[Student]) {
+    def shuffle = Random.shuffle(list)
+  }
+
 }
