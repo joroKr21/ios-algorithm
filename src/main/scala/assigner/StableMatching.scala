@@ -3,8 +3,13 @@ package assigner
 import scala.util.Random
 
 class StableMatching(students: List[Student], groups: List[Group]) extends MatchingSolution(students, groups) {
-  val matching = {
-    Random.shuffle(students).map { student =>
+  val totalSize = groups.map(_.size).sum
+  val mandatoryStudents = students.filter(_.mandatory == true)
+  val otherStudents = Random.shuffle(students.filter(_.mandatory == false))
+  val selectedStudents = mandatoryStudents ++ otherStudents.take(totalSize - mandatoryStudents.size)
+
+  matching = {
+    Random.shuffle(selectedStudents).map { student =>
       var finished = false
       var group = 0
       var id = 0
@@ -18,7 +23,7 @@ class StableMatching(students: List[Student], groups: List[Group]) extends Match
         }
       }
 
-      (id, group)
+      id -> group
     }.toMap
   }
 }

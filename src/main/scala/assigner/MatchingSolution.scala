@@ -4,9 +4,11 @@ import org.coinor.opents.SolutionAdapter
 
 
 class MatchingSolution(students: List[Student], groups: List[Group]) extends SolutionAdapter{
+  var matching : Map[Int, Int] = Map()
+
   override def clone = {
     val copy: MatchingSolution = super.clone.asInstanceOf[MatchingSolution]
-    //copy.tour = tour
+    copy.matching = matching
 
     copy
   }
