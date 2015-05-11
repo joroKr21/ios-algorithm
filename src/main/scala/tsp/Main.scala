@@ -1,15 +1,24 @@
 package tsp
 
 import org.coinor.opents._
-import java.util.Random
 
 object Main extends App {
 
+  val left =  Array[Double](72, 40, 31, 20, 66, 89, 75, 47, 38, 17, 31, 79, 139, 189, 166, 183, 162, 119, 20, 18)
+  val right = Array[Double](186, 170, 153, 188, 138, 127, 99, 69, 50, 37, 13, 46, 9, 13, 65, 70, 95, 182, 118, 111)
+
   // Initialize our objects
-  val r: Random = new Random(12345)
-  val customers = Array.fill[Double](20, 2) {
-    r.nextDouble * 200
+//  val r: Random = new Random(12345)
+//  val customers = Array.fill[Double](20, 2) {
+//    r.nextDouble * 200
+//  }
+
+  val customers = Array.ofDim[Double](20,2)
+  for(i <- 0 until customers.length) {
+    customers(i)(0) = left(i)
+    customers(i)(1) = right(i)
   }
+
   val objFunc: ObjectiveFunction = new MyObjectiveFunction(customers)
   val initialSolution: Solution = new MyGreedyStartSolution(customers)
   val moveManager: MoveManager = new MyMoveManager

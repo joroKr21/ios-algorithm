@@ -10,9 +10,18 @@ public class Main
         // Initialize our objects
         java.util.Random r = new java.util.Random( 12345 );
         double[][] customers = new double[20][2];
-        for( int i = 0; i < 20; i++ )
-            for( int j = 0; j < 2; j++ )
-                customers[i][j] = r.nextDouble()*200;
+        double[] left = new double[] {72, 40, 31, 20, 66, 89, 75, 47, 38, 17, 31, 79, 139, 189, 166, 183, 162, 119, 20, 18 };
+        double[] right = new double[]{186, 170, 153, 188, 138, 127, 99, 69, 50, 37, 13, 46, 9, 13, 65, 70, 95, 182, 118, 111 };
+
+
+//        for( int i = 0; i < 20; i++ )
+//            for( int j = 0; j < 2; j++ )
+//                customers[i][j] = r.nextDouble()*200;
+
+        for( int i = 0; i < 20; i++ ) {
+            customers[i][0] = left[i];
+            customers[i][1] = right[i];
+        }
         
         ObjectiveFunction objFunc = new MyObjectiveFunction( customers );
         Solution initialSolution  = new MyGreedyStartSolution( customers );

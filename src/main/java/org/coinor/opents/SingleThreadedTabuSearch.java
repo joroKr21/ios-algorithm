@@ -320,7 +320,7 @@ public class SingleThreadedTabuSearch extends TabuSearchBase
     {
         // Set up variables
 //        2
-        Move bestMove = moves[1];
+        Move bestMove = moves[0];
 
 
         double[] bestMoveVal = {};
