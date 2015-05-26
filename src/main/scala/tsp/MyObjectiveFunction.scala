@@ -10,7 +10,7 @@ class MyObjectiveFunction(customers: Array[Array[Double]]) extends ObjectiveFunc
 
 
     move match {
-      case move:MySwapMove => {
+      case move:MySwapMove =>
         var pos1: Int = -1
         var pos2: Int = -1
 
@@ -28,30 +28,36 @@ class MyObjectiveFunction(customers: Array[Array[Double]]) extends ObjectiveFunc
         var dist: Double = solution.getObjectiveValue()(0)
 
         // Treat a pair swap move differently
+
+        //     | |
+        // A-B-C-D-E: swap C and D, say (works for symmetric matrix only)
         if (pos1 + 1 == pos2) {
-          dist -= matrix(tour(pos1 - 1))(tour(pos1))
-          dist -= matrix(tour(pos2))(tour((pos2 + 1) % len))
-          dist += matrix(tour(pos1 - 1))(tour(pos2))
-          dist += matrix(tour(pos1))(tour((pos2 + 1) % len))
-          Array(dist)
-        }
-        else {
-          dist -= matrix(tour(pos1 - 1))(tour(pos1))
-          dist -= matrix(tour(pos1))(tour(pos1 + 1))
-          dist -= matrix(tour(pos2 - 1))(tour(pos2))
-          dist -= matrix(tour(pos2))(tour((pos2 + 1) % len))
-          dist += matrix(tour(pos1 - 1))(tour(pos2))
-          dist += matrix(tour(pos2))(tour(pos1 + 1))
-          dist += matrix(tour(pos2 - 1))(tour(pos1))
-          dist += matrix(tour(pos1))(tour((pos2 + 1) % len))
+          dist -= matrix(tour(pos1 - 1))(tour(pos1))            // -BC
+          dist -= matrix(tour(pos2))(tour((pos2 + 1) % len))    // -DE
+          dist += matrix(tour(pos1 - 1))(tour(pos2))            // +BD
+          dist += matrix(tour(pos1))(tour((pos2 + 1) % len))    // +CE
           Array(dist)
         }
 
-      }
-      case _ => {
+        //   |     |
+        // A-B-C-D-E-F: swap B and E, say
+        else {
+          dist -= matrix(tour(pos1 - 1))(tour(pos1))            // -AB
+          dist -= matrix(tour(pos1))(tour(pos1 + 1))            // -BC
+          dist -= matrix(tour(pos2 - 1))(tour(pos2))            // -DE
+          dist -= matrix(tour(pos2))(tour((pos2 + 1) % len))    // -EF
+
+          dist += matrix(tour(pos1 - 1))(tour(pos2))            // +AE
+          dist += matrix(tour(pos2))(tour(pos1 + 1))            // +EC
+          dist += matrix(tour(pos2 - 1))(tour(pos1))            // +DB
+          dist += matrix(tour(pos1))(tour((pos2 + 1) % len))    // +BF
+          Array(dist)
+        }
+
+
+      case _ =>
         val dist = (0 until len).map(i => matrix(tour(i))(if (i + 1 >= len) 0 else tour(i + 1))).sum
         Array(dist)
-      }
     }
   }
 

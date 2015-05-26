@@ -1,53 +1,40 @@
 package assigner
 
-import org.coinor.opents.{SimpleTabuList, TabuList}
+import org.coinor.opents.{BestEverAspirationCriteria, SimpleTabuList, SingleThreadedTabuSearch}
 
 object Assigner extends App {
 
-  val students = List[Student](
-    Student(0, Set(2, 1, 3, 0), Set(5, 3, 4), Set(4), Set(), mandatory = true),
-    Student(1, Set(3, 0, 2, 1), Set(1, 5, 2), Set(), Set(7), mandatory = true),
-    Student(2, Set(0, 1, 2, 3), Set(4, 5, 3), Set(), Set(), mandatory = true),
-    Student(3, Set(1, 2, 3, 0), Set(2, 4, 5), Set(1), Set(), mandatory = true),
-    Student(4, Set(3, 2, 1, 0), Set(4, 4, 3), Set(), Set(), mandatory = true),
-    Student(5, Set(2, 3, 1, 0), Set(3, 3, 3), Set(3, 8), Set(), mandatory = true),
-    Student(6, Set(0, 1, 3, 2), Set(1, 4, 3), Set(), Set(), mandatory = true),
-    Student(7, Set(2, 0, 1, 3), Set(4, 2, 5), Set(), Set(), mandatory = true),
-    Student(8, Set(3, 1, 2, 0), Set(1, 2, 1), Set(), Set(2), mandatory = true),
-    Student(9, Set(0, 2, 3, 1), Set(3, 4, 2), Set(), Set(), mandatory = true)
+  val students = Set[Student](
+    Student(0, "dss", true, Map("1" -> 5, "2" -> 3, "3" -> 4), List(2, 1, 0), Set(4), Set()),
+    Student(1, "dss", true, Map("1" -> 1, "2" -> 5, "3" -> 2), List(1, 0, 2), Set(), Set(7)),
+    Student(2, "dss", true, Map("1" -> 4, "2" -> 5, "3" -> 3), List(0, 2, 1), Set(), Set()),
+    Student(3, "dss", true, Map("1" -> 2, "2" -> 4, "3" -> 5), List(0, 1, 2), Set(1), Set()),
+    Student(4, "dss", true, Map("1" -> 4, "2" -> 4, "3" -> 3), List(2, 1, 0), Set(), Set()),
+    Student(5, "dss", true, Map("1" -> 3, "2" -> 3, "3" -> 3), List(1, 2, 0), Set(3, 8), Set()),
+    Student(6, "dss", true, Map("1" -> 1, "2" -> 4, "3" -> 3), List(0, 1, 2), Set(), Set()),
+    Student(7, "dss", true, Map("1" -> 4, "2" -> 2, "3" -> 5), List(1, 2, 0), Set(), Set()),
+    Student(8, "dss", true, Map("1" -> 1, "2" -> 2, "3" -> 1), List(2, 0, 1), Set(), Set(2)),
+    Student(9, "dss", true, Map("1" -> 3, "2" -> 4, "3" -> 2), List(0, 2, 1), Set(), Set())
+  ).map(s => s.id -> s).toMap
+
+  val groups = Set[Group](
+    Group(0, 3, 3, Set("1", "2", "3")),
+    Group(1, 3, 3, Set("1", "2", "3")),
+    Group(2, 4, 4, Set("1", "2", "3"))
+  ).map(s => s.id -> s).toMap
+
+  val tabuSearch = new SingleThreadedTabuSearch(
+      new InitialMatching(students, groups),
+      new AssignmentManager(students, groups),
+      new Objective(students, groups),
+      new SimpleTabuList(7),
+      new BestEverAspirationCriteria,
+      true
   )
 
-  val groups = List[Group](
-    Project(Set(0, 1, 2), 3),
-    Project(Set(0, 1, 2), 3),
-    Project(Set(0, 1, 2), 4)
-  )
+  tabuSearch.setIterationsToGo(100)
+  tabuSearch.startSolving()
 
-  // TODO: Add objective function
-  val stableMatching = new StableMatching(students, groups)
-  // TODO: Add move-manager
-  val tabuList: TabuList = new SimpleTabuList(7)
-
-  //  Create Tabu Search object
-  //  val tabuSearch: TabuSearch = new SingleThreadedTabuSearch(
-  //    stableMatching,
-  //    moveManager,
-  //    objFunc,
-  //    tabuList,
-  //    new BestEverAspirationCriteria,
-  //    false
-  //  )
-
-  //  // Start solving
-  //  tabuSearch.setIterationsToGo(100)
-  //  tabuSearch.startSolving()
-
-  //  // Show solution
-  //  val best: MySolution = tabuSearch.getBestSolution.asInstanceOf[MySolution]
-  //  System.out.println("Best Solution:\n" + best)
-
-  //  val tour: Array[Int] = best.tour
-  //  for(i <- 0 until tour.length) {
-  //    System.out.println(customers(tour(i))(0) + "\t" + customers(tour(i))(1))
-  //  }
+  println(tabuSearch.getBestSolution)
+  println(new Objective(students, groups).evaluate(tabuSearch.getBestSolution, null)(0))
 }
