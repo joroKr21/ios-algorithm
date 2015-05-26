@@ -28,7 +28,6 @@ class MyObjectiveFunction(customers: Array[Array[Double]]) extends ObjectiveFunc
         var dist: Double = solution.getObjectiveValue()(0)
 
         // Treat a pair swap move differently
-
         //     | |
         // A-B-C-D-E: swap C and D, say (works for symmetric matrix only)
         if (pos1 + 1 == pos2) {
@@ -36,6 +35,7 @@ class MyObjectiveFunction(customers: Array[Array[Double]]) extends ObjectiveFunc
           dist -= matrix(tour(pos2))(tour((pos2 + 1) % len))    // -DE
           dist += matrix(tour(pos1 - 1))(tour(pos2))            // +BD
           dist += matrix(tour(pos1))(tour((pos2 + 1) % len))    // +CE
+
           Array(dist)
         }
 
@@ -51,12 +51,14 @@ class MyObjectiveFunction(customers: Array[Array[Double]]) extends ObjectiveFunc
           dist += matrix(tour(pos2))(tour(pos1 + 1))            // +EC
           dist += matrix(tour(pos2 - 1))(tour(pos1))            // +DB
           dist += matrix(tour(pos1))(tour((pos2 + 1) % len))    // +BF
+
           Array(dist)
         }
 
 
       case _ =>
         val dist = (0 until len).map(i => matrix(tour(i))(if (i + 1 >= len) 0 else tour(i + 1))).sum
+
         Array(dist)
     }
   }

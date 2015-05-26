@@ -1,0 +1,21 @@
+language: scala
+
+scala:
+  - 2.11.6
+
+jdk:
+  - oraclejdk7
+  - openjdk7
+
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.sbt/boot
+
+script:
+  # Tricks to avoid unnecessary cache updates
+  - find $HOME/.sbt -name "*.lock" | xargs rm
+  - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
+
+notifications:
+  slack: ios-tub:pS3WTwm9juZOQXvN8KMRRbVt
