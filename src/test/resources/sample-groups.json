@@ -1,0 +1,8 @@
+[{
+  "type": "group",
+  "id": "tram5",
+  "name": "Tram #5",
+  "min-size": 4,
+  "max-size": 6,
+  "skills": ["c", "cryptography"]
+}]

@@ -1,0 +1,15 @@
+[{
+  "type": "student",
+  "id": "smario",
+  "name": "Super Mario",
+  "major": "DSS",
+  "mandatory": true,
+  "preferences": ["redhats", "plumbers"],
+  "friends": ["princess", "luigi"],
+  "foes": ["shroom"],
+  "skills": {
+    "plumbing": 5,
+    "jumping": 4,
+    "economics": 1
+  }
+}]
