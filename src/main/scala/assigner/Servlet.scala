@@ -38,6 +38,8 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
 
     val assigner = new Assigner(students, groups)
 
-    new Objective(students, groups).evaluate(assigner.tabuSearch.getBestSolution, null)(0)
+    val bestSol = assigner.tabuSearch.getBestSolution.asInstanceOf[Assignment]
+
+    Map("Student Map" -> bestSol.studentMap, "Group Map" -> bestSol.groupMap)
   }
 }
