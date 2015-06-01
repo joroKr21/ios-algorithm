@@ -17,7 +17,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
   }
 
   get("/") {
-    Set[Student](
+    val students = Set[Student](
       Student(0, "dss", true, Map("1" -> 5, "2" -> 3, "3" -> 4), List(2, 1, 0), Set(4), Set()),
       Student(1, "dss", true, Map("1" -> 1, "2" -> 5, "3" -> 2), List(1, 0, 2), Set(), Set(7)),
       Student(2, "dss", true, Map("1" -> 4, "2" -> 5, "3" -> 3), List(0, 2, 1), Set(), Set()),
@@ -29,5 +29,15 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
       Student(8, "dss", true, Map("1" -> 1, "2" -> 2, "3" -> 1), List(2, 0, 1), Set(), Set(2)),
       Student(9, "dss", true, Map("1" -> 3, "2" -> 4, "3" -> 2), List(0, 2, 1), Set(), Set())
     ).map(s => s.id -> s).toMap
+
+    val groups = Set[Group](
+      Group(0, 3, 3, Set("1", "2", "3")),
+      Group(1, 3, 3, Set("1", "2", "3")),
+      Group(2, 4, 4, Set("1", "2", "3"))
+    ).map(s => s.id -> s).toMap
+
+    val assigner = new Assigner(students, groups)
+
+    new Objective(students, groups).evaluate(assigner.tabuSearch.getBestSolution, null)(0)
   }
 }
