@@ -4,7 +4,6 @@ import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.ScalatraServlet
 import org.scalatra.json.JacksonJsonSupport
 
-
 class Servlet extends ScalatraServlet with JacksonJsonSupport {
 
   // Sets up automatic case class to JSON output serialization, required by
@@ -37,7 +36,6 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
     ).map(s => s.id -> s).toMap
 
     val assigner = new Assigner(students, groups)
-
     val bestSol = assigner.tabuSearch.getBestSolution.asInstanceOf[Assignment]
 
     Map("Student Map" -> bestSol.studentMap, "Group Map" -> bestSol.groupMap)
