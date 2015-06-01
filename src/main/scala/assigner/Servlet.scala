@@ -1,6 +1,7 @@
 package assigner
 
-import org.json4s.{DefaultFormats, Formats}
+import org.json4s.jackson.Serialization.write
+import org.json4s.{DefaultFormats, Formats, _}
 import org.scalatra.ScalatraServlet
 import org.scalatra.json.JacksonJsonSupport
 
@@ -13,6 +14,23 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
   // Before every action runs, set the content type to be in JSON format.
   before() {
     contentType = formats("json")
+  }
+
+  post("/run") {
+    val input = parsedBody.extract[Input]
+    val students = input.students.map(s => s.id -> s).toMap
+    val groups = input.groups.map(s => s.id -> s).toMap
+
+    val assigner = new Assigner(students, groups)
+    val bestSol = assigner.tabuSearch.getBestSolution.asInstanceOf[Assignment]
+
+    val url = "test"
+    val data = write(Map("Student Map" -> bestSol.studentMap, "Group Map" -> bestSol.groupMap))
+//    Future {
+//      post(url, data)
+//    }
+
+    Map("Student Map" -> bestSol.studentMap, "Group Map" -> bestSol.groupMap)
   }
 
   get("/") {
@@ -37,6 +55,9 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
 
     val assigner = new Assigner(students, groups)
     val bestSol = assigner.tabuSearch.getBestSolution.asInstanceOf[Assignment]
+
+    val data: String = write(Map("Student Map" -> bestSol.studentMap, "Group Map" -> bestSol.groupMap))
+    println(data)
 
     Map("Student Map" -> bestSol.studentMap, "Group Map" -> bestSol.groupMap)
   }
