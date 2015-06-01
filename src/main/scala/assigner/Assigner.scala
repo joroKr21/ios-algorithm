@@ -15,7 +15,11 @@ case class Assigner(students: Map[Int, Student], groups: Map[Int, Group]) {
 
   tabuSearch.addTabuSearchListener(new TabuSearchAdapter {
     override def newCurrentSolutionFound(e: TabuSearchEvent) = {
-      println(e.getTabuSearch.getCurrentSolution)
+      val cur = e.getTabuSearch.getObjectiveFunction.evaluate(e.getTabuSearch.getCurrentSolution, null)(0).toString
+      val best = e.getTabuSearch.getObjectiveFunction.evaluate(e.getTabuSearch.getBestSolution, null)(0).toString
+
+
+      logger.info(s"Current Value: $cur, Best Value: $best")
     }
 
     override def newBestSolutionFound(e: TabuSearchEvent) = {
