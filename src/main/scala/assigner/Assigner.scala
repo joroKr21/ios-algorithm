@@ -1,6 +1,6 @@
 package assigner
 
-import org.coinor.opents.{BestEverAspirationCriteria, SimpleTabuList, SingleThreadedTabuSearch}
+import org.coinor.opents._
 
 object Assigner extends App {
 
@@ -32,7 +32,17 @@ object Assigner extends App {
       true
   )
 
-  tabuSearch.setIterationsToGo(100)
+  tabuSearch.addTabuSearchListener(new TabuSearchAdapter {
+    override def newCurrentSolutionFound(e: TabuSearchEvent) = {
+      println(e.getTabuSearch.getCurrentSolution)
+    }
+
+    override def newBestSolutionFound(e: TabuSearchEvent) = {
+      e.getTabuSearch.setIterationsToGo(20)
+    }
+  })
+
+  tabuSearch.setIterationsToGo(20)
   tabuSearch.startSolving()
 
   println(tabuSearch.getBestSolution)

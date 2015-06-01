@@ -37,7 +37,6 @@ class AssignmentManager(students: Map[Int, Student], groups: Map[Int, Group]) ex
           if isStable(move)
         } yield move).toList
 
-        println(moves)
         moves.toArray
       }
     }
