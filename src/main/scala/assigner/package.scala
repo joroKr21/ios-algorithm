@@ -1,6 +1,7 @@
 import org.coinor.opents.SolutionAdapter
 
 import scala.util.Random
+import scalaj.http.Http
 
 package object assigner {
 
@@ -35,5 +36,12 @@ package object assigner {
   implicit class RandomShuffle(val list: List[Int]) {
     def shuffle = Random.shuffle(list)
   }
+
+  def post(url: String, data: String) =
+    Http(url)
+      .postData(data)
+      .header("content-type", "application/json")
+      .asString
+      .code
 
 }
