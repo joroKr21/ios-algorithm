@@ -1,4 +1,4 @@
-package tspjava;
+package org.coinor.tsp;
 
 
 public class MyGreedyStartSolution extends MySolution 

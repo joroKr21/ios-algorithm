@@ -11,7 +11,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
   // the JValueResult trait.
   protected implicit val jsonFormats: Formats = DefaultFormats
 
-  val courseMap = Map[Int, Boolean]()
+  val courseMap = scala.collection.mutable.Map[Int, Boolean]()
 
   // Before every action runs, set the content type to be in JSON format.
   before() {
@@ -23,8 +23,9 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
     val courseId: Int = input.courseId
     if(courseMap.contains(courseId)){
 
+    } else {
+      courseMap(courseId) =  false
     }
-
 
     val settings = input.settings
     val students = input.students.map(s => s.id -> s).toMap
