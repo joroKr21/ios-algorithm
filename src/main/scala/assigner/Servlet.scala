@@ -22,6 +22,19 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
     contentType = formats("json")
   }
 
+  get("/finished:courseId") {
+    val courseId = params("courseId").toInt
+    if(courseMap.contains(courseId)) {
+      val output =
+        if (courseMap(courseId)) "Finished"
+        else "Running"
+
+      output
+    } else {
+      "Course is not known"
+    }
+  }
+
   post("/run") {
     val input = parsedBody.extract[Course]
     val courseId: Int = input.courseId
