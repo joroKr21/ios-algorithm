@@ -2,66 +2,89 @@ package assigner
 
 import org.coinor.opents.{Move, ObjectiveFunction, Solution}
 
-case class Objective(students: Map[Int, Student], groups: Map[Int, Group]) extends ObjectiveFunction {
-  override def evaluate(solution: Solution, move: Move): Array[Double] = {
-    def eval(solution: Solution) = solution match {
-      case sol: Assignment =>
-        val G = Gs(sol)
-        val F = Fs(sol)
-        val out = (G+F).toString
+case class Objective(course: Course) extends ObjectiveFunction {
+  val students = course.studentMap
+  val groups   = course.groupMap
+  val skills   = course.skills
 
-        logger.info(s"New Solution: $out")
-        Array(G+F)
+  lazy val meanAvgSkills = avgSkills(students.values)
+
+  val criteria = Map(
+    if (course.settings.diverse)
+      "maximallyDiverse" -> maximallyDiverse _
+    else
+    "equallySkilled"   -> equallySkilled   _,
+
+    "groupPreferences" -> groupPreferences(course.hasGlobalWeights) _,
+    "friendsAndFoes"   -> friendsAndFoes  (course.hasGlobalWeights) _)
+
+  val withWeights = criteria zipMap course.weights.filter { _._2 != 0 }
+
+  override def evaluate(solution: Solution, move: Move) = {
+    def eval(solution: Solution) = solution match {
+      case assignment: Assignment =>
+        val score = for {
+          (name, (func, weight)) <- withWeights
+        } yield weight * func(assignment)
+        Array(score.sum)
     }
 
-    if (move == null) eval(solution)
+    if (move == null)
+      eval(solution)
     else {
-      val newSol = solution.asInstanceOf[Assignment].copy()
+      val newSol = solution.asInstanceOf[Assignment].copy
       move.operateOn(newSol)
       eval(newSol)
     }
   }
 
-  def Gs(solution: Assignment) : Double = {
-    val minSkills = solution.groupMap.flatMap {
+  def maximallyDiverse(assignment: Assignment): Double = {
+    val minSkills = assignment.groupMap flatMap {
       case (g, ss) => groups(g).skills.map { skill =>
-        skill -> ss.map(s => students(s).skills(skill)).max
+        skill -> ss.map(students(_) skills skill).max
       }.toMap
-    }.groupBy(_._1).mapValues(_.values.min)
-
-    val Gs = minSkills.values.min * minSkills.values.sum
-
-    Gs.toDouble
+    } groupBy { _._1 } map { _._2.values.min }
+    minSkills.min * minSkills.sum
   }
 
-  def Fs(solution: Assignment) : Double = {
-    friendsFoes(solution)
+  def equallySkilled(assignment: Assignment): Double = {
+    def sqr(x: Double) = x * x
+    val averages = assignment.groupMap map {
+      case (_, ss) => avgSkills(ss map students)
+    }
+
+    1 / averages.map { x => sqr(x - meanAvgSkills) }.mean
   }
 
-  def friendsFoes(solution: Assignment) : Double = {
-    solution.groupMap.keys.map { key =>
-      val score = for {
-        studId1 :: studId2 :: _ <- solution.studentMap.filter(_._2 == key).keys.toList.combinations(2)
-        student1 = students(studId1)
-        student2 = students(studId2)
-      } yield {
-        val friends = student1.friends.contains(studId2) || student2.friends.contains(studId1)
-        val foes = student1.foes.contains(studId2) || student2.foes.contains(studId1)
-        if(friends && foes) {
-          -.5
-        } else if(friends) {
-          if(student1.friends.contains(studId2) && student2.friends.contains(studId1)) 1
-          else .5
-        } else if(foes) {
-          if(student1.foes.contains(studId2) && student2.foes.contains(studId1)) -2
-          else -1
-        } else {
-          0
-        }
-      }
+  def groupPreferences(localWeights: Boolean)
+                      (assignment: Assignment): Double =
+    assignment.studentMap.map {
+      case (_, -1) => 0.0
+      case (s,  g) =>
+        val student = students(s)
+        val weight  =
+          if (localWeights) student.weights.getOrElse("preferences", 1.0)
+          else 1.0
 
-      score.sum
+        - weight * math.log(student.preferences indexOf g)
     }.sum
-  }
 
+  def friendsAndFoes(localWeights: Boolean)
+                    (assignment: Assignment): Double =
+    assignment.studentMap.map {
+      case (_, -1) => 0.0
+      case (s1, g) =>
+        val student = students(s1)
+        val weight  = if (localWeights)
+          student.weights.getOrElse("friends", 1.0) else 1.0
+
+        (for (s2 <- assignment.groupMap(g)) yield weight * {
+          if      (student friends s2)  0.5
+          else if (student foes    s2) -0.5
+          else                          0.0
+        }).sum
+    }.sum
+
+  def avgSkills(students: Traversable[Student]) =
+    students.map { s => skills.map(s.skills).sum.toDouble }.mean
 }
