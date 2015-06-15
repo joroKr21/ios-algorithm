@@ -45,6 +45,15 @@ class ServletSpec extends MutableScalatraSpec {
     }
   }
 
+  "Get /finished/3" should {
+    "return status 200 say the course is not known" in {
+      get("/finished/3") {
+        status must_== 200
+        body must_== "Course is not known"
+      }
+    }
+  }
+
   def initPost(id: Int): Course = {
     val students = Set[Student](
       Student(id = 0, name = "Student 0", mandatory = true, skills = Map("1" -> 5, "2" -> 3, "3" -> 4),
