@@ -34,6 +34,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
       val f: Future[Assignment] = Future {
         val assigner = new Assigner(input)
 
+        // For testing purposes
         Thread.sleep(1000)
 
         assigner.startSolving()
@@ -47,7 +48,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
 
           // TODO: Post the result of the algorithm to the backend
         case Failure(t) =>
-          println("An error has occured: " + t.getMessage)
+          println("An error has occurred: " + t.getMessage)
 
           // TODO: Post the failure message to the backend and save the logs to a file or database
       }
