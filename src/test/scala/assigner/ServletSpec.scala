@@ -1,9 +1,8 @@
-package tsp
+package assigner
 
-import org.json4s.{DefaultFormats, Formats}
 import org.json4s.jackson.Serialization._
+import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.test.specs2._
-import assigner._
 
 class ServletSpec extends MutableScalatraSpec {
 
@@ -17,7 +16,7 @@ class ServletSpec extends MutableScalatraSpec {
       Student(0, "dss", true, Map("1" -> 5, "2" -> 3, "3" -> 4), List(2, 1, 0), Set(4), Set()),
       Student(1, "dss", true, Map("1" -> 1, "2" -> 5, "3" -> 2), List(1, 0, 2), Set(), Set(7)),
       Student(2, "dss", true, Map("1" -> 4, "2" -> 5, "3" -> 3), List(0, 2, 1), Set(), Set()),
-      Student(3, "dss", true, Map("1" -> 2, "2" -> 4, "3" -> 5), List(0, 1, 2), Set(1,2,4,5,6,7,8,9), Set()),
+      Student(3, "dss", true, Map("1" -> 2, "2" -> 4, "3" -> 5), List(0, 1, 2), Set(1, 2, 4, 5, 6, 7, 8, 9), Set()),
       Student(4, "dss", true, Map("1" -> 4, "2" -> 4, "3" -> 3), List(2, 1, 0), Set(), Set()),
       Student(5, "dss", true, Map("1" -> 3, "2" -> 3, "3" -> 3), List(1, 2, 0), Set(3, 8), Set()),
       Student(6, "dss", true, Map("1" -> 1, "2" -> 4, "3" -> 3), List(0, 1, 2), Set(), Set()),
@@ -37,8 +36,8 @@ class ServletSpec extends MutableScalatraSpec {
     Course(id, settings, students.values.toList, groups.values.toList, Set("1", "2", "3"))
   }
 
-  "POST /run on Servlet with id = 1 (First time)" should {
-    "return status 200 and body = Algorithm successfully started!" in {
+  "POST /run on Servlet with id = 1" should {
+    "return status 200 and start the algorithm the first time and says its still running the second" in {
       val course = initPost(1)
       val json: String = write(course)
 
@@ -46,13 +45,6 @@ class ServletSpec extends MutableScalatraSpec {
         status must_== 200
         body must_== "Algorithm successfully started!"
       }
-    }
-  }
-
-  "POST /run on Servlet with id = 1 (Second time)" should {
-    "return status 200 and body = Algorithm still running!" in {
-      val course = initPost(1)
-      val json: String = write(course)
 
       post("/run", json) {
         status must_== 200
