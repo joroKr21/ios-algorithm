@@ -24,15 +24,16 @@ object Main extends App{
   val groups = Set[Group](
     Group(0, 3, 3, Set("1", "2", "3")),
     Group(1, 3, 3, Set("1", "2", "3")),
-    Group(2, 4, 4, Set("1", "2", "3"))
+    Group(2, 3, 3, Set("1", "2", "3"))
   ).map(s => s.id -> s).toMap
 
-  val settings = Settings(diverse = true, numIterations = 20, numStartPoints = 20)
+  val settings = Settings(diverse = true, iterations = 20)
+  val course = Course(1, settings, students.values.toList, groups.values.toList, Set("1", "2", "3"))
+  val assigner = new Assigner(course)
 
-  val assigner = new Assigner(settings, students, groups)
 
   logger.debug("Best Solution", assigner.tabuSearch.getBestSolution)
-  logger.debug("Best Value", new Objective(students, groups).evaluate(assigner.tabuSearch.getBestSolution, null)(0))
+  logger.debug("Best Value", new Objective(course).evaluate(assigner.tabuSearch.getBestSolution, null)(0))
   val bestSol = assigner.tabuSearch.getBestSolution.asInstanceOf[Assignment]
 
   val data: String = write(Map("Student Map" -> bestSol.studentMap, "Group Map" -> bestSol.groupMap))

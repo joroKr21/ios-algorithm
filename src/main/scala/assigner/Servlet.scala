@@ -19,7 +19,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
   }
 
   post("/run") {
-    val input = parsedBody.extract[Input]
+    val input = parsedBody.extract[Course]
     val courseId: Int = input.courseId
     if(courseMap.contains(courseId)){
 
@@ -31,7 +31,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
     val groups = input.groups.map(s => s.id -> s).toMap
 
 
-    val assigner = new Assigner(settings, students, groups)
+    val assigner = new Assigner(input)
     val bestSol = assigner.tabuSearch.getBestSolution.asInstanceOf[Assignment]
 
     val url = "test"
@@ -63,9 +63,9 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
       Group(2, 4, 4, Set("1", "2", "3"))
     ).map(s => s.id -> s).toMap
 
-    val settings = Settings(diverse = true, numIterations = 20, numStartPoints = 20)
+    val settings = Settings(diverse = true, iterations = 20)
 
-    val assigner = new Assigner(settings, students, groups)
+    val assigner = new Assigner(Course(1, settings, students.values.toList, groups.values.toList))
     val bestSol = assigner.tabuSearch.getBestSolution.asInstanceOf[Assignment]
 
     val data: String = write(Map("Student Map" -> bestSol.studentMap, "Group Map" -> bestSol.groupMap))

@@ -16,7 +16,7 @@ class InitialMatching(students: Map[Int, Student], groups: Map[Int, Group]) exte
     var groupId = -1
 
     for {
-      preference <- student.preferences
+      preference <- student.groupPreferences
       if currentGroupSizes(preference) < groups(preference).maxSize && !finished
     } {
       currentGroupSizes(preference) += 1
@@ -27,7 +27,7 @@ class InitialMatching(students: Map[Int, Student], groups: Map[Int, Group]) exte
     studentId -> groupId
   }.toMap
 
-  groupMap = studentMap.groupBy(_._2).map { case (key, value) => key -> value.keySet}
+  groupMap = studentMap.groupBy(_._2).filter { _._1 != -1 }.map { case (key, value) => key -> value.keySet}
 }
 
 

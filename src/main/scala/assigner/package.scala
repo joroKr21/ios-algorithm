@@ -9,39 +9,57 @@ package object assigner {
   def logger = LoggerFactory.getLogger(this.getClass)
 
   case class Student(id: Int,
-                     major: String,
-                     mandatory: Boolean,
+                     name: String,
+                     mandatory: Boolean = false,
                      skills: Map[String, Int],
-                     preferences: List[Int],
-                     friends: Set[Int],
-                     foes: Set[Int])
+                     groupPreferences: List[Int] = Nil,
+                     friends: Set[Int] = Set.empty,
+                     foes: Set[Int] = Set.empty)
 
   case class Group(id: Int,
                    minSize: Int,
                    maxSize: Int,
-                   skills: Set[String])
+                   skills: Set[String] = Set.empty)
 
-  case class Settings(diverse: Boolean, numStartPoints: Int, numIterations: Int)
+  case class Settings(diverse: Boolean, iterations: Int)
 
-  case class Input(courseId: Int, settings: Settings, students: Set[Student], groups: Set[Group])
+  case class Course(courseId: Int,
+                    settings: Settings,
+                    students: List[Student],
+                    groups: List[Group],
+                    skills: Set[String] = Set.empty) {
+    def hasQueue = students.size > groups.map(_.maxSize).sum
+  }
 
   case class Assignment(var studentMap: Map[Int, Int],
                         var groupMap: Map[Int, Set[Int]])
-    extends SolutionAdapter {
+      extends SolutionAdapter {
+    def copy = clone
 
     override def clone = {
-      val copy: Assignment = super.clone.asInstanceOf[Assignment]
+      val copy = super.clone.asInstanceOf[Assignment]
       copy.studentMap = studentMap
       copy.groupMap = groupMap
-
       copy
     }
-
-    def copy() = clone()
   }
 
-  implicit class RandomShuffle(val list: List[Int]) {
-    def shuffle = Random.shuffle(list)
+  implicit class Shuffle[A](val self: List[A]) extends AnyVal {
+    def shuffle = Random shuffle self
+  }
+
+  implicit class MeanVar[A: Fractional](self: Traversable[A]) {
+    import Fractional.Implicits._
+
+    def mean = {
+      val f = implicitly[Fractional[A]]
+      self.sum / f.fromInt(self.size)
+    }
+
+    def variance = {
+      val m = self.mean
+      self.map { _ - m }.map { x => x * x }.mean
+    }
   }
 
   def post(url: String, data: String) =
