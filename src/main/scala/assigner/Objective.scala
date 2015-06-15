@@ -10,7 +10,7 @@ case class Objective(students: Map[Int, Student], groups: Map[Int, Group]) exten
         val F = Fs(sol)
         val out = (G+F).toString
 
-//        logger.info(s"New Solution: $out")
+        logger.info(s"New Solution: $out")
         Array(G+F)
     }
 

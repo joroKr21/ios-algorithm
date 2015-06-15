@@ -21,7 +21,9 @@ package object assigner {
                    maxSize: Int,
                    skills: Set[String])
 
-  case class Input(students: Set[Student], groups: Set[Group])
+  case class Settings(diverse: Boolean, numStartPoints: Int, numIterations: Int)
+
+  case class Input(courseId: Int, settings: Settings, students: Set[Student], groups: Set[Group])
 
   case class Assignment(var studentMap: Map[Int, Int],
                         var groupMap: Map[Int, Set[Int]])

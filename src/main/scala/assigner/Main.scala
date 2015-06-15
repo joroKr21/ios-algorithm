@@ -1,7 +1,13 @@
 package assigner
 
+import org.json4s.{DefaultFormats, Formats}
+import org.json4s.jackson.Serialization._
+
 
 object Main extends App{
+  protected implicit val jsonFormats: Formats = DefaultFormats
+
+
   val students = Set[Student](
     Student(0, "dss", true, Map("1" -> 5, "2" -> 3, "3" -> 4), List(2, 1, 0), Set(4), Set()),
     Student(1, "dss", true, Map("1" -> 1, "2" -> 5, "3" -> 2), List(1, 0, 2), Set(), Set(7)),
@@ -21,8 +27,14 @@ object Main extends App{
     Group(2, 4, 4, Set("1", "2", "3"))
   ).map(s => s.id -> s).toMap
 
-  val assigner = new Assigner(students, groups)
+  val settings = Settings(diverse = true, numIterations = 20, numStartPoints = 20)
+
+  val assigner = new Assigner(settings, students, groups)
 
   logger.debug("Best Solution", assigner.tabuSearch.getBestSolution)
   logger.debug("Best Value", new Objective(students, groups).evaluate(assigner.tabuSearch.getBestSolution, null)(0))
+  val bestSol = assigner.tabuSearch.getBestSolution.asInstanceOf[Assignment]
+
+  val data: String = write(Map("Student Map" -> bestSol.studentMap, "Group Map" -> bestSol.groupMap))
+  logger.info(data)
 }
