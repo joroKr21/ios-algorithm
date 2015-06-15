@@ -40,17 +40,21 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
         assigner.startSolving()
       }
 
+
       f onComplete {
         case Success(assignment) =>
+          courseMap(courseId) = true
           logger.info("Best Solution")
           val data: String = write(Map("Student Map" -> assignment.studentMap, "Group Map" -> assignment.groupMap))
           logger.info(data)
 
           // TODO: Post the result of the algorithm to the backend
+
         case Failure(t) =>
           println("An error has occurred: " + t.getMessage)
 
           // TODO: Post the failure message to the backend and save the logs to a file or database
+
       }
 
       "Algorithm successfully started!"

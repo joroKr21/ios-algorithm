@@ -16,7 +16,7 @@ class InitialMatching(students: Map[Int, Student], groups: Map[Int, Group]) exte
     var groupId = -1
 
     for {
-      preference <- student.groupPreferences
+      preference <- student.preferences
       if currentGroupSizes(preference) < groups(preference).maxSize && !finished
     } {
       currentGroupSizes(preference) += 1
