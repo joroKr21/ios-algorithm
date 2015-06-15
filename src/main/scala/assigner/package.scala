@@ -8,12 +8,13 @@ package object assigner {
   def logger = LoggerFactory.getLogger(this.getClass)
 
   case class Student(id:          Int,
-                     name:        String           = "",
-                     mandatory:   Boolean          = false,
-                     skills:      Map[String, Int] = Set.empty,
-                     preferences: List[Int]        = Nil,
-                     friends:     Set[Int]         = Set.empty,
-                     foes:        Set[Int]         = Set.empty)
+                     name:        String              = "",
+                     mandatory:   Boolean             = false,
+                     skills:      Map[String, Int]    = Set.empty,
+                     weights:     Map[String, Double] = Map.empty,
+                     preferences: List[Int]           = Nil,
+                     friends:     Set[Int]            = Set.empty,
+                     foes:        Set[Int]            = Set.empty)
 
   case class Group(id:      Int,
                    minSize: Int,
@@ -22,15 +23,18 @@ package object assigner {
                    skills:  Set[String] = Set.empty)
 
   case class Settings(iterations: Int,
+                      diverse:    Boolean             = true,
                       weights:    Map[String, Double] = Map.empty)
 
   case class Course(courseId: Int,
                     settings: Settings,
                     students: List[Student],
                     groups:   List[Group],
-                    skills:   Set[String] = Set.empty) {
+                    skills:   Set[String]         = Set.empty,
+                    weights:  Map[String, Double] = Map.empty) {
     def studentMap = students.map { s => s.id -> s }.toMap
     def groupMap   = groups  .map { g => g.id -> g }.toMap
+    def hasGlobalWeights = weights.nonEmpty
   }
 
   case class Assignment(var studentMap: Map[Int, Int],
@@ -63,5 +67,17 @@ package object assigner {
       val m = self.mean
       self.map { x => sqr(x - m) }.mean
     }
+  }
+
+  implicit class MapOps[K, V](val self: Map[K, V]) extends AnyVal {
+    def zipMap[V2](that: Map[K, V2]) =
+      (self.keySet intersect that.keySet).map { key =>
+        key -> (self(key), that(key))
+      }.toMap
+
+    def merge(that: Map[K, V]) =
+      (self.keySet union that.keySet).map { key =>
+        key -> that.getOrElse(key, self(key))
+      }.toMap
   }
 }

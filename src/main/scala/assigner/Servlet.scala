@@ -27,7 +27,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
 
 
     val settings = input.settings
-    val students = input.students.map(s => s.id -> s).toMap
+    val students = input.studentMap.map(s => s.id -> s).toMap
     val groups = input.groups.map(s => s.id -> s).toMap
 
 
