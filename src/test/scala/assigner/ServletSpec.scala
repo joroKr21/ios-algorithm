@@ -18,12 +18,17 @@ class ServletSpec extends MutableScalatraSpec {
 
       post("/run", json) {
         status must_== 200
-        body must_== "Algorithm successfully started!"
+        body must_== "Algorithm successfully started"
       }
 
       post("/run", json) {
         status must_== 200
-        body must_== "Algorithm still running!"
+        body must_== "Algorithm is still running"
+      }
+
+      get("/finished/1") {
+        status must_== 200
+        body must_== "Algorithm is still running"
       }
     }
   }
@@ -35,7 +40,7 @@ class ServletSpec extends MutableScalatraSpec {
 
       post("/run", json) {
         status must_== 200
-        body must_== "Algorithm successfully started!"
+        body must_== "Algorithm successfully started"
       }
     }
   }

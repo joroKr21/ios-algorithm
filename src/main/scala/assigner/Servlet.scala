@@ -22,12 +22,12 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
     contentType = formats("json")
   }
 
-  get("/finished:courseId") {
+  get("/finished/:courseId") {
     val courseId = params("courseId").toInt
     if(courseMap.contains(courseId)) {
       val output =
-        if (courseMap(courseId)) "Finished"
-        else "Running"
+        if (courseMap(courseId)) "Algorithm is finished"
+        else "Algorithm is still running"
 
       output
     } else {
@@ -39,7 +39,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
     val input = parsedBody.extract[Course]
     val courseId: Int = input.courseId
     if(courseMap.contains(courseId) && !courseMap(courseId)){
-      "Algorithm still running!"
+      "Algorithm is still running"
     } else {
       courseMap(courseId) = false
 
@@ -70,7 +70,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
 
       }
 
-      "Algorithm successfully started!"
+      "Algorithm successfully started"
     }
   }
 }
