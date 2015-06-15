@@ -10,7 +10,7 @@ class InitialMatching(students: Map[Int, Student], groups: Map[Int, Group]) exte
       otherStudentIds.drop(numOfOtherStudents)
 
   private val currentGroupSizes = Array.fill(groups.size)(0)
-  students = orderedStudentIds.map { studentId =>
+  studentMap = orderedStudentIds.map { studentId =>
     val student = students(studentId)
     var finished = false
     var groupId = -1
@@ -27,7 +27,7 @@ class InitialMatching(students: Map[Int, Student], groups: Map[Int, Group]) exte
     studentId -> groupId
   }.toMap
 
-  groups = students.groupBy(_._2).filter { _._1 != -1 }.map { case (key, value) => key -> value.keySet}
+  groupMap = studentMap.groupBy(_._2).filter { _._1 != -1 }.map { case (key, value) => key -> value.keySet}
 }
 
 

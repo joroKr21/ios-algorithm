@@ -9,9 +9,12 @@ case class Objective(course: Course) extends ObjectiveFunction {
 
   lazy val meanAvgSkills = avgSkills(students.values)
 
-  val criteria = Map(if (course.settings.diverse)
-    "maximallyDiverse" -> maximallyDiverse _ else
+  val criteria = Map(
+    if (course.settings.diverse)
+      "maximallyDiverse" -> maximallyDiverse _
+    else
     "equallySkilled"   -> equallySkilled   _,
+
     "groupPreferences" -> groupPreferences(course.hasGlobalWeights) _,
     "friendsAndFoes"   -> friendsAndFoes  (course.hasGlobalWeights) _)
 
@@ -59,8 +62,9 @@ case class Objective(course: Course) extends ObjectiveFunction {
       case (_, -1) => 0.0
       case (s,  g) =>
         val student = students(s)
-        val weight  = if (localWeights)
-          student.weights.getOrElse("preferences", 1.0) else 1.0
+        val weight  =
+          if (localWeights) student.weights.getOrElse("preferences", 1.0)
+          else 1.0
 
         - weight * math.log(student.preferences indexOf g)
     }.sum

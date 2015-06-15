@@ -10,7 +10,7 @@ package object assigner {
   case class Student(id:          Int,
                      name:        String              = "",
                      mandatory:   Boolean             = false,
-                     skills:      Map[String, Int]    = Set.empty,
+                     skills:      Map[String, Int]    = Map.empty,
                      weights:     Map[String, Double] = Map.empty,
                      preferences: List[Int]           = Nil,
                      friends:     Set[Int]            = Set.empty,

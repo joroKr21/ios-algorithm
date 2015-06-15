@@ -5,12 +5,12 @@ import org.coinor.opents._
 case class Assigner(course: Course) {
   val settings = course.settings
   val iterations = settings.iterations
-  val students = course.studentMap.map(s => s.id -> s).toMap
-  val groups = course.groups.map(g => g.id -> g).toMap
+  val students = course.studentMap
+  val groups = course.groupMap
 
   val tabuSearch = new SingleThreadedTabuSearch(
       new InitialMatching(students, groups),
-      new AssignmentManager(students, groups),
+      new AssignmentManager(course),
       new Objective(course),
       new SimpleTabuList(7),
       new BestEverAspirationCriteria,

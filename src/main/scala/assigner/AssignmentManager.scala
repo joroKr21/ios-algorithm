@@ -3,8 +3,8 @@ package assigner
 import org.coinor.opents.{Move, Solution, MoveManager}
 
 class AssignmentManager(course: Course) extends MoveManager {
-  val students = course.studentMap
-  val groups   = course.groupMap
+  var students = course.studentMap
+  var groups   = course.groupMap
 
   def getAllMoves(solution: Solution) = solution match {
     case assignment @ Assignment(studentMap, groupMap) =>
