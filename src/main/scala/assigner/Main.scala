@@ -1,7 +1,11 @@
 package assigner
 
+import org.json4s.jackson.Serialization.write
 import org.json4s.{DefaultFormats, Formats}
-import org.json4s.jackson.Serialization._
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 
 object Main extends App{
@@ -29,13 +33,26 @@ object Main extends App{
 
   val settings = Settings(diverse = true, iterations = 20)
   val course = Course(1, settings, students.values.toList, groups.values.toList, Set("1", "2", "3"))
-  val assigner = new Assigner(course)
 
 
-  logger.debug("Best Solution", assigner.tabuSearch.getBestSolution)
-  logger.debug("Best Value", new Objective(course).evaluate(assigner.tabuSearch.getBestSolution, null)(0))
-  val bestSol = assigner.tabuSearch.getBestSolution.asInstanceOf[Assignment]
+  val f: Future[Assignment] = Future {
+    val assigner = new Assigner(course)
 
-  val data: String = write(Map("Student Map" -> bestSol.studentMap, "Group Map" -> bestSol.groupMap))
-  logger.info(data)
+    assigner.startSolving()
+  }
+
+  logger.info("Test")
+//  Await.result(f, 5 minutes)
+
+
+  f onComplete {
+    case Success(assignment) =>
+      logger.info("Best Solution")
+      val data: String = write(Map("Student Map" -> assignment.studentMap, "Group Map" -> assignment.groupMap))
+      logger.info(data)
+    case Failure(t) =>
+      println("An error has occured: " + t.getMessage)
+  }
+
+  Thread.sleep(1000)
 }

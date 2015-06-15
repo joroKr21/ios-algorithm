@@ -1,9 +1,13 @@
 package assigner
 
-import org.json4s.jackson.Serialization.write
+import org.json4s.jackson.Serialization._
 import org.json4s.{DefaultFormats, Formats, _}
 import org.scalatra.ScalatraServlet
 import org.scalatra.json.JacksonJsonSupport
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 class Servlet extends ScalatraServlet with JacksonJsonSupport {
 
@@ -11,7 +15,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
   // the JValueResult trait.
   protected implicit val jsonFormats: Formats = DefaultFormats
 
-  val courseMap = Map[Int, Boolean]()
+  val courseMap = scala.collection.mutable.Map[Int, Boolean]()
 
   // Before every action runs, set the content type to be in JSON format.
   before() {
@@ -21,28 +25,34 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
   post("/run") {
     val input = parsedBody.extract[Course]
     val courseId: Int = input.courseId
-    if(courseMap.contains(courseId)){
+    if(courseMap.contains(courseId) && !courseMap(courseId)){
+      "Job still running"
+    } else {
+      courseMap(courseId) = false
 
+      // Run the algorithm asynchronously
+      val f: Future[Assignment] = Future {
+        val assigner = new Assigner(input)
+
+        assigner.startSolving()
+      }
+
+      f onComplete {
+        case Success(assignment) =>
+          logger.info("Best Solution")
+          val data: String = write(Map("Student Map" -> assignment.studentMap, "Group Map" -> assignment.groupMap))
+          logger.info(data)
+
+          // TODO: Post the result of the algorithm to the backend
+        case Failure(t) =>
+          println("An error has occured: " + t.getMessage)
+
+          // TODO: Post the failure message to the backend and save the logs to a file or database
+      }
     }
-
-
-    val settings = input.settings
-    val students = input.students.map(s => s.id -> s).toMap
-    val groups = input.groups.map(s => s.id -> s).toMap
-
-
-    val assigner = new Assigner(input)
-    val bestSol = assigner.tabuSearch.getBestSolution.asInstanceOf[Assignment]
-
-    val url = "test"
-    val data = write(Map("Student Map" -> bestSol.studentMap, "Group Map" -> bestSol.groupMap))
-//    Future {
-//      post(url, data)
-//    }
-
-    Map("Student Map" -> bestSol.studentMap, "Group Map" -> bestSol.groupMap)
   }
 
+  // endpoint for testing purposes
   get("/") {
     val students = Set[Student](
       Student(0, "dss", true, Map("1" -> 5, "2" -> 3, "3" -> 4), List(2, 1, 0), Set(4), Set()),
@@ -60,17 +70,41 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
     val groups = Set[Group](
       Group(0, 3, 3, Set("1", "2", "3")),
       Group(1, 3, 3, Set("1", "2", "3")),
-      Group(2, 4, 4, Set("1", "2", "3"))
+      Group(2, 3, 3, Set("1", "2", "3"))
     ).map(s => s.id -> s).toMap
 
     val settings = Settings(diverse = true, iterations = 20)
+    val courseId = 1
+    val input = Course(courseId, settings, students.values.toList, groups.values.toList, Set("1", "2", "3"))
 
-    val assigner = new Assigner(Course(1, settings, students.values.toList, groups.values.toList))
-    val bestSol = assigner.tabuSearch.getBestSolution.asInstanceOf[Assignment]
+    if(courseMap.contains(courseId) && !courseMap(courseId)){
+      "Job still running"
+    } else {
+      courseMap(courseId) = false
 
-    val data: String = write(Map("Student Map" -> bestSol.studentMap, "Group Map" -> bestSol.groupMap))
-    println(data)
+      // Run the algorithm asynchronously
+      val f: Future[Assignment] = Future {
+        val assigner = new Assigner(input)
 
-    Map("Student Map" -> bestSol.studentMap, "Group Map" -> bestSol.groupMap)
+        Thread.sleep(10000)
+        assigner.startSolving()
+      }
+
+      f onComplete {
+        case Success(assignment) =>
+          logger.info("Best Solution")
+          val data: String = write(Map("Student Map" -> assignment.studentMap, "Group Map" -> assignment.groupMap))
+          logger.info(data)
+
+        // TODO: Post the result of the algorithm to the backend
+        case Failure(t) =>
+          println("An error has occured: " + t.getMessage)
+
+        // TODO: Post the failure message to the backend and save the logs to a file or database
+      }
+
+      "Algorithm successfully started!"
+    }
+
   }
 }
