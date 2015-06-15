@@ -1,4 +1,4 @@
-package tspjava;
+package org.coinor.tsp;
 
 import org.coinor.opents.*;
 
