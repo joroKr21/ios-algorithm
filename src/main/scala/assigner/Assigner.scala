@@ -2,7 +2,8 @@ package assigner
 
 import org.coinor.opents._
 
-case class Assigner(students: Map[Int, Student], groups: Map[Int, Group]) {
+case class Assigner(settings: Settings, students: Map[Int, Student], groups: Map[Int, Group]) {
+  val iterations = settings.numIterations
 
   val tabuSearch = new SingleThreadedTabuSearch(
       new InitialMatching(students, groups),
@@ -23,10 +24,10 @@ case class Assigner(students: Map[Int, Student], groups: Map[Int, Group]) {
     }
 
     override def newBestSolutionFound(e: TabuSearchEvent) = {
-      e.getTabuSearch.setIterationsToGo(20)
+      e.getTabuSearch.setIterationsToGo(iterations)
     }
   })
 
-  tabuSearch.setIterationsToGo(20)
+  tabuSearch.setIterationsToGo(iterations)
   tabuSearch.startSolving()
 }

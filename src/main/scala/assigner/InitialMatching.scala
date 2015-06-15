@@ -6,9 +6,7 @@ class InitialMatching(students: Map[Int, Student], groups: Map[Int, Group]) exte
   private val otherStudentIds = students.values.filter(!_.mandatory).map(_.id).toList.shuffle
   private val numOfOtherStudents = totalSize - mandatoryStudentIds.size
   private val orderedStudentIds =
-    (mandatoryStudentIds ++
-      otherStudentIds.take(numOfOtherStudents)
-      ).toList.shuffle ++
+    (mandatoryStudentIds ++ otherStudentIds.take(numOfOtherStudents)).toList.shuffle ++
       otherStudentIds.drop(numOfOtherStudents)
 
   private val currentGroupSizes = Array.fill(groups.size)(0)
