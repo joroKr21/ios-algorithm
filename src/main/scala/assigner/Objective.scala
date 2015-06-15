@@ -8,6 +8,9 @@ case class Objective(students: Map[Int, Student], groups: Map[Int, Group]) exten
       case sol: Assignment =>
         val G = Gs(sol)
         val F = Fs(sol)
+        val out = (G+F).toString
+
+        logger.info(s"New Solution: $out")
         Array(G+F)
     }
 
@@ -27,7 +30,6 @@ case class Objective(students: Map[Int, Student], groups: Map[Int, Group]) exten
     }.groupBy(_._1).mapValues(_.values.min)
 
     val Gs = minSkills.values.min * minSkills.values.sum
-    println(Gs)
 
     Gs.toDouble
   }
