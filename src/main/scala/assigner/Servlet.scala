@@ -15,6 +15,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
   // the JValueResult trait.
   protected implicit val jsonFormats: Formats = DefaultFormats
 
+  // A map in memory where we save all the jobs we run
   val courseMap = scala.collection.mutable.Map[Int, Boolean]()
 
   // Before every action runs, set the content type to be in JSON format.
