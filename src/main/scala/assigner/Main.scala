@@ -3,12 +3,8 @@ package assigner
 import org.json4s.jackson.Serialization.write
 import org.json4s.{DefaultFormats, Formats}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import scala.util.{Failure, Success}
 
-
-object Main extends App{
+object Main extends App {
   protected implicit val jsonFormats: Formats = DefaultFormats
 
   val students = Set[Student](
@@ -19,7 +15,7 @@ object Main extends App{
     Student(id = 2, name = "Student 2", mandatory = true, skills = Map("1" -> 4, "2" -> 5, "3" -> 3),
       preferences = List(0, 2, 1), friends = Set()),
     Student(id = 3, name = "Student 3", mandatory = true, skills = Map("1" -> 2, "2" -> 4, "3" -> 5),
-      preferences = List(0, 1, 2), friends = Set(1,2,4,5,6,7,8,9)),
+      preferences = List(0, 1, 2), friends = Set(1, 2, 4, 5, 6, 7, 8, 9)),
     Student(id = 4, name = "Student 4", mandatory = true, skills = Map("1" -> 4, "2" -> 4, "3" -> 3),
       preferences = List(2, 1, 0), friends = Set()),
     Student(id = 5, name = "Student 5", mandatory = true, skills = Map("1" -> 3, "2" -> 3, "3" -> 3),
@@ -43,25 +39,11 @@ object Main extends App{
   val settings = Settings(diverse = true, iterations = 20)
   val course = Course(1, settings, students.values.toList, groups.values.toList, Set("1", "2", "3"))
 
+  val assigner = new Assigner(course)
 
-  val f: Future[Assignment] = Future {
-    val assigner = new Assigner(course)
+  val assignment = assigner.startSolving()
 
-    assigner.startSolving()
-  }
-
-  logger.info("Test")
-//  Await.result(f, 5 minutes)
-
-
-  f onComplete {
-    case Success(assignment) =>
-      logger.info("Best Solution")
-      val data: String = write(Map("Student Map" -> assignment.studentMap, "Group Map" -> assignment.groupMap))
-      logger.info(data)
-    case Failure(t) =>
-      println("An error has occured: " + t.getMessage)
-  }
-
-  Thread.sleep(1000)
+  logger.info("Best Solution")
+  val data: String = write(Map("Student Map" -> assignment.studentMap, "Group Map" -> assignment.groupMap))
+  logger.info(data)
 }

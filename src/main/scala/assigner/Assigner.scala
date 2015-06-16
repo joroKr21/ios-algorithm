@@ -9,12 +9,12 @@ case class Assigner(course: Course) {
   val groups = course.groupMap
 
   private val tabuSearch = new SingleThreadedTabuSearch(
-      new InitialMatching(students, groups),
-      new AssignmentManager(course),
-      new Objective(course),
-      new SimpleTabuList(7),
-      new BestEverAspirationCriteria,
-      true
+    new InitialMatching(students, groups),
+    new AssignmentManager(course),
+    new Objective(course),
+    new SimpleTabuList(7),
+    new BestEverAspirationCriteria,
+    true
   )
 
   tabuSearch.addTabuSearchListener(new TabuSearchAdapter {

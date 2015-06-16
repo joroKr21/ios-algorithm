@@ -4,8 +4,8 @@ import org.coinor.opents.{Move, ObjectiveFunction, Solution}
 
 case class Objective(course: Course) extends ObjectiveFunction {
   val students = course.studentMap
-  val groups   = course.groupMap
-  val skills   = course.skills
+  val groups = course.groupMap
+  val skills = course.skills
 
   lazy val meanAvgSkills = avgSkills(students.values)
 
@@ -13,20 +13,36 @@ case class Objective(course: Course) extends ObjectiveFunction {
     if (course.settings.diverse)
       "maximallyDiverse" -> maximallyDiverse _
     else
-    "equallySkilled"   -> equallySkilled   _,
+      "equallySkilled" -> equallySkilled _,
 
     "groupPreferences" -> groupPreferences(course.hasGlobalWeights) _,
-    "friendsAndFoes"   -> friendsAndFoes  (course.hasGlobalWeights) _)
+    "friendsAndFoes" -> friendsAndFoes(course.hasGlobalWeights) _
+  )
 
-  val withWeights = criteria zipMap course.weights.filter { _._2 != 0 }
+  val withWeights = criteria zipMap course.weights.filter {
+    _._2 != 0
+  }
 
   override def evaluate(solution: Solution, move: Move) = {
     def eval(solution: Solution) = solution match {
       case assignment: Assignment =>
-        val score = for {
-          (name, (func, weight)) <- withWeights
-        } yield weight * func(assignment)
-        Array(score.sum)
+        val score =
+          if (course.hasGlobalWeights) {
+            val func = for {
+              (name, (func, weight)) <- withWeights
+            } yield weight * func(assignment)
+
+            func.sum
+          } else {
+            val func = for {
+              (name, func) <- criteria
+            } yield func(assignment)
+
+            func.sum
+          }
+
+
+        Array(score)
     }
 
     if (move == null)
@@ -43,7 +59,11 @@ case class Objective(course: Course) extends ObjectiveFunction {
       case (g, ss) => groups(g).skills.map { skill =>
         skill -> ss.map(students(_) skills skill).max
       }.toMap
-    } groupBy { _._1 } map { _._2.values.min }
+    } groupBy {
+      _._1
+    } map {
+      _._2.values.min
+    }
     minSkills.min * minSkills.sum
   }
 
@@ -60,13 +80,15 @@ case class Objective(course: Course) extends ObjectiveFunction {
                       (assignment: Assignment): Double =
     assignment.studentMap.map {
       case (_, -1) => 0.0
-      case (s,  g) =>
+      case (s, g) =>
         val student = students(s)
-        val weight  =
+        val weight =
           if (localWeights) student.weights.getOrElse("preferences", 1.0)
           else 1.0
+        val index = student.preferences indexOf g
+        val penalty = if (index == 0) 0 else math.log(index)
 
-        - weight * math.log(student.preferences indexOf g)
+        -weight * index
     }.sum
 
   def friendsAndFoes(localWeights: Boolean)
@@ -75,13 +97,14 @@ case class Objective(course: Course) extends ObjectiveFunction {
       case (_, -1) => 0.0
       case (s1, g) =>
         val student = students(s1)
-        val weight  = if (localWeights)
-          student.weights.getOrElse("friends", 1.0) else 1.0
+        val weight = if (localWeights)
+          student.weights.getOrElse("friends", 1.0)
+        else 1.0
 
         (for (s2 <- assignment.groupMap(g)) yield weight * {
-          if      (student friends s2)  0.5
-          else if (student foes    s2) -0.5
-          else                          0.0
+          if (student friends s2) 0.5
+          else if (student foes s2) -0.5
+          else 0.0
         }).sum
     }.sum
 

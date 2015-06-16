@@ -24,7 +24,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
 
   get("/finished/:courseId") {
     val courseId = params("courseId").toInt
-    if(courseMap.contains(courseId)) {
+    if (courseMap.contains(courseId)) {
       val output =
         if (courseMap(courseId)) "Algorithm is finished"
         else "Algorithm is still running"
@@ -38,7 +38,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
   post("/run") {
     val input = parsedBody.extract[Course]
     val courseId: Int = input.courseId
-    if(courseMap.contains(courseId) && !courseMap(courseId)){
+    if (courseMap.contains(courseId) && !courseMap(courseId)) {
       "Algorithm is still running"
     } else {
       courseMap(courseId) = false
@@ -61,12 +61,12 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
           val data: String = write(Map("Student Map" -> assignment.studentMap, "Group Map" -> assignment.groupMap))
           logger.info(data)
 
-          // TODO: Post the result of the algorithm to the backend
+        // TODO: Post the result of the algorithm to the backend
 
         case Failure(t) =>
           println("An error has occurred: " + t.getMessage)
 
-          // TODO: Post the failure message to the backend and save the logs to a file or database
+        // TODO: Post the failure message to the backend and save the logs to a file or database
 
       }
 
