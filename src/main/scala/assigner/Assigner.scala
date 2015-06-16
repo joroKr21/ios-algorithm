@@ -8,13 +8,13 @@ case class Assigner(course: Course) {
   val students = course.studentMap
   val groups = course.groupMap
 
-  val tabuSearch = new SingleThreadedTabuSearch(
-      new InitialMatching(students, groups),
-      new AssignmentManager(course),
-      new Objective(course),
-      new SimpleTabuList(7),
-      new BestEverAspirationCriteria,
-      true
+  private val tabuSearch = new SingleThreadedTabuSearch(
+    new InitialMatching(students, groups),
+    new AssignmentManager(course),
+    new Objective(course),
+    new SimpleTabuList(7),
+    new BestEverAspirationCriteria,
+    true
   )
 
   tabuSearch.addTabuSearchListener(new TabuSearchAdapter {
@@ -32,5 +32,10 @@ case class Assigner(course: Course) {
   })
 
   tabuSearch.setIterationsToGo(iterations)
-  tabuSearch.startSolving()
+
+  def startSolving() = {
+    tabuSearch.startSolving()
+
+    tabuSearch.getBestSolution.asInstanceOf[Assignment]
+  }
 }

@@ -7,45 +7,47 @@ package object assigner {
 
   def logger = LoggerFactory.getLogger(this.getClass)
 
-  case class Student(id:          Int,
-                     name:        String              = "",
-                     mandatory:   Boolean             = false,
-                     skills:      Map[String, Int]    = Map.empty,
-                     weights:     Map[String, Double] = Map.empty,
-                     preferences: List[Int]           = Nil,
-                     friends:     Set[Int]            = Set.empty,
-                     foes:        Set[Int]            = Set.empty)
+  case class Student(id: Int,
+                     name: String = "",
+                     mandatory: Boolean = false,
+                     skills: Map[String, Int] = Map.empty,
+                     weights: Map[String, Double] = Map.empty,
+                     preferences: List[Int] = Nil,
+                     friends: Set[Int] = Set.empty,
+                     foes: Set[Int] = Set.empty)
 
-  case class Group(id:      Int,
+  case class Group(id: Int,
                    minSize: Int,
                    maxSize: Int,
-                   name:    String      = "",
-                   skills:  Set[String] = Set.empty)
+                   name: String = "",
+                   skills: Set[String] = Set.empty)
 
   case class Settings(iterations: Int,
-                      diverse:    Boolean             = true,
-                      weights:    Map[String, Double] = Map.empty)
+                      diverse: Boolean = true,
+                      weights: Map[String, Double] = Map.empty)
 
   case class Course(courseId: Int,
                     settings: Settings,
                     students: List[Student],
-                    groups:   List[Group],
-                    skills:   Set[String]         = Set.empty,
-                    weights:  Map[String, Double] = Map.empty) {
+                    groups: List[Group],
+                    skills: Set[String] = Set.empty,
+                    weights: Map[String, Double] = Map.empty) {
     def studentMap = students.map { s => s.id -> s }.toMap
-    def groupMap   = groups  .map { g => g.id -> g }.toMap
+
+    def groupMap = groups.map { g => g.id -> g }.toMap
+
     def hasGlobalWeights = weights.nonEmpty
   }
 
   case class Assignment(var studentMap: Map[Int, Int],
-                        var groupMap:   Map[Int, Set[Int]])
-      extends SolutionAdapter {
+                        var groupMap: Map[Int, Set[Int]])
+    extends SolutionAdapter {
     def copy = clone
 
     override def clone = {
       val copy = super.clone.asInstanceOf[Assignment]
       copy.studentMap = studentMap
-      copy.groupMap   = groupMap
+      copy.groupMap = groupMap
       copy
     }
   }
@@ -55,6 +57,7 @@ package object assigner {
   }
 
   implicit class MeanVar[A: Fractional](self: Traversable[A]) {
+
     import Fractional.Implicits._
 
     def mean = {
@@ -72,7 +75,7 @@ package object assigner {
   implicit class MapOps[K, V](val self: Map[K, V]) extends AnyVal {
     def zipMap[V2](that: Map[K, V2]) =
       (self.keySet intersect that.keySet).map { key =>
-        key -> (self(key), that(key))
+        key ->(self(key), that(key))
       }.toMap
 
     def merge(that: Map[K, V]) =
@@ -80,4 +83,5 @@ package object assigner {
         key -> that.getOrElse(key, self(key))
       }.toMap
   }
+
 }

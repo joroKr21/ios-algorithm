@@ -27,7 +27,9 @@ class InitialMatching(students: Map[Int, Student], groups: Map[Int, Group]) exte
     studentId -> groupId
   }.toMap
 
-  groupMap = studentMap.groupBy(_._2).filter { _._1 != -1 }.map { case (key, value) => key -> value.keySet}
+  groupMap = studentMap.groupBy(_._2).filter {
+    _._1 != -1
+  }.map { case (key, value) => key -> value.keySet }
 }
 
 
