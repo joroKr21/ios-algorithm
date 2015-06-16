@@ -41,7 +41,6 @@ case class Objective(course: Course) extends ObjectiveFunction {
             func.sum
           }
 
-
         Array(score)
     }
 
@@ -64,6 +63,7 @@ case class Objective(course: Course) extends ObjectiveFunction {
     } map {
       _._2.values.min
     }
+
     minSkills.min * minSkills.sum
   }
 
@@ -86,7 +86,7 @@ case class Objective(course: Course) extends ObjectiveFunction {
           if (localWeights) student.weights.getOrElse("preferences", 1.0)
           else 1.0
         val index = student.preferences indexOf g
-        val penalty = if (index == 0) 0 else math.log(index)
+        //val penalty = if (index == 0) 0 else math.log(index)
 
         -weight * index
     }.sum

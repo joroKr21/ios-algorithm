@@ -40,7 +40,6 @@ object Main extends App {
   val course = Course(1, settings, students.values.toList, groups.values.toList, Set("1", "2", "3"))
 
   val assigner = new Assigner(course)
-
   val assignment = assigner.startSolving()
 
   logger.info("Best Solution")

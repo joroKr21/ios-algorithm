@@ -25,11 +25,8 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
   get("/finished/:courseId") {
     val courseId = params("courseId").toInt
     if (courseMap.contains(courseId)) {
-      val output =
         if (courseMap(courseId)) "Algorithm is finished"
         else "Algorithm is still running"
-
-      output
     } else {
       "Course is not known"
     }
@@ -53,7 +50,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
         assigner.startSolving()
       }
 
-
+      // Callback when the algorithm is finished async
       f onComplete {
         case Success(assignment) =>
           courseMap(courseId) = true

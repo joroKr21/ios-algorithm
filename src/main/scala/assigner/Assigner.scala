@@ -8,6 +8,7 @@ case class Assigner(course: Course) {
   val students = course.studentMap
   val groups = course.groupMap
 
+  // TODO: Test the impact of using the MultiThreadedSearch
   private val tabuSearch = new SingleThreadedTabuSearch(
     new InitialMatching(students, groups),
     new AssignmentManager(course),
@@ -17,6 +18,8 @@ case class Assigner(course: Course) {
     true
   )
 
+  // Add a listener in order to get the same behaviour as in the paper where they terminate the algorithm
+  // when the algorithm is not improving the objective function for a pre-set number of moves
   tabuSearch.addTabuSearchListener(new TabuSearchAdapter {
     override def newCurrentSolutionFound(e: TabuSearchEvent) = {
       val cur = e.getTabuSearch.getObjectiveFunction.evaluate(e.getTabuSearch.getCurrentSolution, null)(0).toString
