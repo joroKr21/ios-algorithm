@@ -9,7 +9,7 @@ class InitialMatching(students: Map[Int, Student], groups: Map[Int, Group]) exte
     (mandatoryStudentIds ++ otherStudentIds.take(numOfOtherStudents)).toList.shuffle ++
       otherStudentIds.drop(numOfOtherStudents)
 
-  private val currentGroupSizes = Array.fill(groups.size)(0)
+  private val currentGroupSizes = collection.mutable.Map(groups.keys.map(_ -> 0).toSeq: _*)
   studentMap = orderedStudentIds.map { studentId =>
     val student = students(studentId)
     var finished = false
