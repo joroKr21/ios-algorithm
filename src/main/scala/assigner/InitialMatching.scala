@@ -15,8 +15,10 @@ class InitialMatching(students: Map[Int, Student], groups: Map[Int, Group]) exte
     var finished = false
     var groupId = -1
 
+    val prefs = student.preferences ++ groups.keySet.diff(student.preferences.toSet).toList.shuffle
+
     for {
-      preference <- student.preferences
+      preference <- prefs
       if currentGroupSizes(preference) < groups(preference).maxSize && !finished
     } {
       currentGroupSizes(preference) += 1

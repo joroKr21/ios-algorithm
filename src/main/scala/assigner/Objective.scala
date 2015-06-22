@@ -56,7 +56,7 @@ case class Objective(course: Course) extends ObjectiveFunction {
   def maximallyDiverse(assignment: Assignment): Double = {
     val minSkills = assignment.groupMap flatMap {
       case (g, ss) => groups(g).skills.map { skill =>
-        skill -> ss.map(students(_) skills skill).max
+        skill -> ss.map(students(_).skills.getOrElse(skill, 0)).max
       }.toMap
     } groupBy {
       _._1
@@ -64,7 +64,12 @@ case class Objective(course: Course) extends ObjectiveFunction {
       _._2.values.min
     }
 
-    minSkills.min * minSkills.sum
+    if(minSkills.isEmpty) {
+      // If you didn't fill in any skills, we just give you a low rating and be done with it...
+      0.001
+    } else {
+      minSkills.min * minSkills.sum
+    }
   }
 
   def equallySkilled(assignment: Assignment): Double = {
@@ -86,9 +91,9 @@ case class Objective(course: Course) extends ObjectiveFunction {
           if (localWeights) student.weights.getOrElse("preferences", 1.0)
           else 1.0
         val index = student.preferences indexOf g
-        //val penalty = if (index == 0) 0 else math.log(index)
+        val penalty = if (index < 0) student.preferences.size + 1 else math.log(index + 1)
 
-        -weight * index
+        -weight * penalty
     }.sum
 
   def friendsAndFoes(localWeights: Boolean)
