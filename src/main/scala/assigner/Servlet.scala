@@ -27,6 +27,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
 
   get("/finished/:courseId") {
     val courseId = params("courseId").toInt
+    logger.info(s"Requested status of course $courseId")
     if (courseMap.contains(courseId)) {
         if (courseMap(courseId)) "Algorithm is finished"
         else "Algorithm is still running"
@@ -36,6 +37,8 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
   }
 
   post("/run") {
+    logger.info(s"Got request headers: ${request.headers}")
+    logger.info(s"Got request body: ${request.body}")
     val input = parsedBody.extract[Course]
     val endpoints = input.endpoints
     val courseId: Int = input.courseId
@@ -58,7 +61,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
       f onComplete {
         case Success(assignment) =>
           courseMap(courseId) = true
-          logger.info("Best Solution")
+          logger.info(s"Best solution: $assignment")
           val data = write(Map("courseId"   -> courseId,
                                "studentMap" -> assignment.studentMap,
                                "groupMap"   -> assignment.groupMap))
@@ -66,6 +69,8 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
           logger.info("Status: " + code)
 
         case Failure(t) =>
+          logger.error(t.getMessage)
+          logger.error(t.getStackTrace.mkString("\n"))
           val code = Http(endpoints.failure).postData("Something went terribly wrong").asString.code
           logger.info("Status " + code)
       }
