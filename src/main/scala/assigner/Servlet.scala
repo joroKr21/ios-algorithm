@@ -1,13 +1,15 @@
 package assigner
 
+import org.json4s._
+import org.json4s.{DefaultFormats, Formats}
 import org.json4s.jackson.Serialization._
-import org.json4s.{DefaultFormats, Formats, _}
 import org.scalatra.ScalatraServlet
 import org.scalatra.json.JacksonJsonSupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
+import scalaj.http.Http
 
 class Servlet extends ScalatraServlet with JacksonJsonSupport {
 
@@ -35,6 +37,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
 
   post("/run") {
     val input = parsedBody.extract[Course]
+    val endpoints = input.endpoints
     val courseId: Int = input.courseId
     if (courseMap.contains(courseId) && !courseMap(courseId)) {
       "Algorithm is still running"
@@ -56,19 +59,21 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
         case Success(assignment) =>
           courseMap(courseId) = true
           logger.info("Best Solution")
-          val data: String = write(Map("Student Map" -> assignment.studentMap, "Group Map" -> assignment.groupMap))
-          logger.info(data)
-
-        // TODO: Post the result of the algorithm to the backend
+          val data = write(Map("studentMap" -> assignment.studentMap,
+                                "groupMap" -> assignment.groupMap))
+          val code = Http(endpoints.success).postData(data).header("content-type", "application/json").asString.code
+          logger.info("Status: " + code)
 
         case Failure(t) =>
-          println("An error has occurred: " + t.getMessage)
-
-        // TODO: Post the failure message to the backend and save the logs to a file or database
-
+          val code = Http(endpoints.failure).postData("Something went terribly wrong").asString.code
+          logger.info("Status " + code)
       }
 
       "Algorithm successfully started"
     }
+  }
+
+  post("/postback") {
+    println(parsedBody.toString)
   }
 }

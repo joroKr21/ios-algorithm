@@ -22,6 +22,8 @@ package object assigner {
                    name: String = "",
                    skills: Set[String] = Set.empty)
 
+  case class Endpoints(success: String, failure: String)
+
   case class Settings(iterations: Int,
                       diverse: Boolean = true,
                       weights: Map[String, Double] = Map.empty)
@@ -31,7 +33,8 @@ package object assigner {
                     students: List[Student],
                     groups: List[Group],
                     skills: Set[String] = Set.empty,
-                    weights: Map[String, Double] = Map.empty) {
+                    weights: Map[String, Double] = Map.empty,
+                    endpoints: Endpoints = null) {
     def studentMap = students.map { s => s.id -> s }.toMap
 
     def groupMap = groups.map { g => g.id -> g }.toMap
