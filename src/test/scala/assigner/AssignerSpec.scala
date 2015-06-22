@@ -3,9 +3,13 @@ package assigner
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
+import org.json4s.DefaultFormats
+import org.json4s.jackson.Serialization._
 
 @RunWith(classOf[JUnitRunner])
 class AssignerSpec extends FlatSpec with Matchers {
+
+  implicit val formats = DefaultFormats
 
   "The algorithm" should "terminate with the desired results" in {
     val students = Set[Student](
@@ -39,6 +43,7 @@ class AssignerSpec extends FlatSpec with Matchers {
 
     val settings = Settings(diverse = true, iterations = 20)
     val course = Course(1, settings, students.values.toList, groups.values.toList, Set("1", "2", "3"))
+    println(write(course))
 
     val assigner = new Assigner(course)
     val assignment = assigner.startSolving()

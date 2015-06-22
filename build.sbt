@@ -4,6 +4,7 @@ lazy val `ios-algorithm` = (project in file(".")).settings(
   name := "ios-algorithm",
   version := "0.1.0-SNAPSHOT",
   scalaVersion := "2.11.6",
+  mainClass in (Compile, run) := Some("assigner.JettyLauncher"),
   scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
   libraryDependencies ++= Seq(
     "org.scalatra"      %% "scalatra"           % scalatraVersion,
@@ -15,7 +16,7 @@ lazy val `ios-algorithm` = (project in file(".")).settings(
     "org.scalatra"      %% "scalatra-json"      % scalatraVersion,
     "org.json4s"        % "json4s-jackson_2.11" % "3.2.11",
     "ch.qos.logback"    %  "logback-classic"    % "1.1.3"            % "runtime",
-    "org.eclipse.jetty" %  "jetty-webapp"       % "9.2.10.v20150310" % "container",
+    "org.eclipse.jetty" %  "jetty-webapp"       % "9.2.10.v20150310" % "container;compile",
     "javax.servlet"     %  "javax.servlet-api"  % "3.1.0"            % "provided",
     "org.scalaj"        %% "scalaj-http"        % "1.1.4",
     "ch.qos.logback"    % "logback-classic"     % "1.1.3"            % "runtime"
