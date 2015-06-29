@@ -35,6 +35,11 @@ case class Course(
   /** @return `true` if global weights are enabled for this course */
   def hasGlobalWeights: Boolean = weights.nonEmpty
 
+  /** @return this course with all weights normalized */
+  def normalized: Course = copy(
+    students = students.map(_.normalized),
+    weights = weights.normalized)
+
   /**
    * Validate this course's data.
    * [[Error]]s will prevent the algorithm from running.

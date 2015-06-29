@@ -22,6 +22,12 @@ case class Student(
                     preferences: Map[GroupId, Double] = default.preferences,
                     friends: Set[StudentId] = default.friends,
                     foes: Set[StudentId] = default.foes) {
+
+  /** @return this student with all weights normalized */
+  def normalized: Student = copy(
+    skills = skills.normalized,
+    weights = weights.normalized,
+    preferences = preferences.normalized)
   
   /**
    * Validate this student's data.

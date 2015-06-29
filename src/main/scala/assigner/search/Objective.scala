@@ -8,7 +8,7 @@ import org.coinor.opents._
  * This is the core of the algorithm - an objective function for evaluating
  * different solutions based on various global and local criteria.
  */
-case class Objective(course: Course) extends ObjectiveFunction {
+class Objective(course: Course) extends ObjectiveFunction {
   val students = course.studentMap
   val groups = course.groupMap
   val skills = course.skills

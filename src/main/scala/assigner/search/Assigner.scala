@@ -2,26 +2,24 @@ package assigner.search
 
 import assigner._
 import assigner.model._
+import assigner.search.tabu._
+
 import org.coinor.opents._
 
-/**
- * Created by georgy on 6/28/15.
- */
-case class Assigner(course: Course) {
-  val settings = course.settings
+/** Entry point for running the algorithm. */
+class Assigner(course: Course) {
+  val c = course.normalized
+  val settings = c.settings
   val iterations = settings.iterations
-  val students = course.studentMap
-  val groups = course.groupMap
 
-  // TODO: Test the impact of using the MultiThreadedSearch
+  // TODO: Test the impact of using MultiThreadedTabuSearch
   private val tabuSearch = new SingleThreadedTabuSearch(
-    new StartingPoint(course),
-    new Manager(course),
-    new Objective(course),
-    new SimpleTabuList(7),
+    new StartingPoint(c),
+    new Manager(c),
+    new Objective(c),
+    new TabuQueue(settings.tabuSize),
     new BestEverAspirationCriteria,
-    true
-  )
+    true)
 
   // Add a listener in order to get the same behaviour as in the paper where they terminate the algorithm
   // when the algorithm is not improving the objective function for a pre-set number of moves
@@ -41,9 +39,8 @@ case class Assigner(course: Course) {
 
   tabuSearch.setIterationsToGo(iterations)
 
-  def startSolving() = {
+  def startSolving(): Assignment = {
     tabuSearch.startSolving()
-
     tabuSearch.getBestSolution.asInstanceOf[Assignment]
   }
 }
