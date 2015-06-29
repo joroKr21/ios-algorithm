@@ -1,7 +1,12 @@
-package assigner
+package assigner.search
 
+import assigner._
+import assigner.model._
 import org.coinor.opents._
 
+/**
+ * Created by georgy on 6/28/15.
+ */
 case class Assigner(course: Course) {
   val settings = course.settings
   val iterations = settings.iterations
@@ -10,8 +15,8 @@ case class Assigner(course: Course) {
 
   // TODO: Test the impact of using the MultiThreadedSearch
   private val tabuSearch = new SingleThreadedTabuSearch(
-    new InitialMatching(students, groups),
-    new AssignmentManager(course),
+    new StartingPoint(course),
+    new Manager(course),
     new Objective(course),
     new SimpleTabuList(7),
     new BestEverAspirationCriteria,

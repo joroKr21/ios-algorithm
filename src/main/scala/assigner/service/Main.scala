@@ -1,9 +1,13 @@
-package assigner
+package assigner.service
 
-import org.json4s.jackson.Serialization.write
+import assigner._
+import assigner.search.Assigner
+import org.json4s.jackson.Serialization._
 import org.json4s.{DefaultFormats, Formats}
 
-
+/**
+ * Created by georgy on 6/28/15.
+ */
 object Main extends App {
   protected implicit val jsonFormats: Formats = DefaultFormats
 

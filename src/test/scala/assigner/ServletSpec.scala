@@ -1,5 +1,6 @@
 package assigner
 
+import assigner.service.Servlet
 import org.json4s.jackson.Serialization._
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.test.specs2._

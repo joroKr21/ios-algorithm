@@ -1,8 +1,9 @@
-package assigner
+package assigner.service
 
-import org.json4s._
-import org.json4s.{DefaultFormats, Formats}
+import assigner._
+import assigner.search.Assigner
 import org.json4s.jackson.Serialization._
+import org.json4s.{DefaultFormats, Formats, _}
 import org.scalatra.ScalatraServlet
 import org.scalatra.json.JacksonJsonSupport
 

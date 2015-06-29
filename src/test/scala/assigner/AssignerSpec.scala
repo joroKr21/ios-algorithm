@@ -1,5 +1,6 @@
 package assigner
 
+import assigner.search.Assigner
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
