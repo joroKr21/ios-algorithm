@@ -26,6 +26,7 @@ package object assigner {
 
   case class Settings(iterations: Int,
                       diverse: Boolean = true,
+                      tabuSize: Int = 7,
                       weights: Map[String, Double] = Map.empty)
 
   case class Course(courseId: Int,
