@@ -5,7 +5,10 @@ lazy val `ios-algorithm` = (project in file(".")).settings(
   version := "0.1.0-SNAPSHOT",
   scalaVersion := "2.11.6",
   mainClass in (Compile, run) := Some("assigner.JettyLauncher"),
-  scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
+  scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-P:continuations:enable"),
+  autoCompilerPlugins := true,
+  addCompilerPlugin(
+    "org.scala-lang.plugins" % "scala-continuations-plugin_2.11.6" % "1.0.2"),
   libraryDependencies ++= Seq(
     "org.scalatra"      %% "scalatra"           % scalatraVersion,
     "org.scalatra"      %% "scalatra-scalate"   % scalatraVersion,
@@ -19,6 +22,7 @@ lazy val `ios-algorithm` = (project in file(".")).settings(
     "org.eclipse.jetty" %  "jetty-webapp"       % "9.2.10.v20150310" % "container;compile",
     "javax.servlet"     %  "javax.servlet-api"  % "3.1.0"            % "provided",
     "org.scalaj"        %% "scalaj-http"        % "1.1.4",
-    "ch.qos.logback"    % "logback-classic"     % "1.1.3"            % "runtime"
+    "ch.qos.logback"    % "logback-classic"     % "1.1.3"            % "runtime",
+    "org.scala-lang.plugins" %% "scala-continuations-library" % "1.0.2"
   )
 ).settings(jetty(): _*)

@@ -23,6 +23,22 @@ case class Objective(course: Course) extends ObjectiveFunction {
     _._2 != 0
   }
 
+  def evalBruteForce(assignment: Assignment) = {
+    if (course.hasGlobalWeights) {
+      val func = for {
+        (name, (func, weight)) <- withWeights
+      } yield weight * func(assignment)
+
+      func.sum
+    } else {
+      val func = for {
+        (name, func) <- criteria
+      } yield func(assignment)
+
+      func.sum
+    }
+  }
+
   override def evaluate(solution: Solution, move: Move) = {
     def eval(solution: Solution) = solution match {
       case assignment: Assignment =>
@@ -64,7 +80,7 @@ case class Objective(course: Course) extends ObjectiveFunction {
       _._2.values.min
     }
 
-    if(minSkills.isEmpty) {
+    if (minSkills.isEmpty) {
       // If you didn't fill in any skills, we just give you a low rating and be done with it...
       0.001
     } else {
