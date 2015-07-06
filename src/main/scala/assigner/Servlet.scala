@@ -29,8 +29,8 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
     val courseId = params("courseId").toInt
     logger.info(s"Requested status of course $courseId")
     if (courseMap.contains(courseId)) {
-        if (courseMap(courseId)) "Algorithm is finished"
-        else "Algorithm is still running"
+      if (courseMap(courseId)) "Algorithm is finished"
+      else "Algorithm is still running"
     } else {
       "Course is not known"
     }
@@ -40,7 +40,25 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
     logger.info(s"Got request headers: ${request.headers}")
     logger.info(s"Got request body: ${request.body}")
     val input = parsedBody.extract[Course]
+
     val endpoints = input.endpoints
+
+    /*
+    Store the remote IP -> this is what we'll be posting the results back to!
+     */
+    var remoteAddr = request.getRemoteAddr();
+    // Undo IPv6 for local links -> default to localhost
+    if ("0:0:0:0:0".equals(remoteAddr.toString().substring(0, 9))) {
+      // Locally we always run on port 3000
+      remoteAddr = "localhost:3000";
+    } else {
+      // In production we always run on port 80
+      remoteAddr = request.getRemoteAddr + ":80";
+    }
+
+    print("The remote addres is: " + remoteAddr + "\n");
+
+
     val courseId: Int = input.courseId
     if (courseMap.contains(courseId) && !courseMap(courseId)) {
       "Algorithm is still running"
@@ -59,16 +77,16 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
         case Success(assignment) =>
           courseMap(courseId) = true
           logger.info(s"Best solution: $assignment")
-          val data = write(Map("courseId"   -> courseId,
-                               "studentMap" -> assignment.studentMap,
-                               "groupMap"   -> assignment.groupMap))
-          val code = Http(endpoints.success).postData(data).header("content-type", "application/json").asString.code
+          val data = write(Map("courseId" -> courseId,
+            "studentMap" -> assignment.studentMap,
+            "groupMap" -> assignment.groupMap))
+          val code = Http("http://" + remoteAddr + endpoints.success).postData(data).header("content-type", "application/json").asString.code
           logger.info("Status: " + code)
 
         case Failure(t) =>
           logger.error(t.getMessage)
           logger.error(t.getStackTrace.mkString("\n"))
-          val code = Http(endpoints.failure).postData("Something went terribly wrong").asString.code
+          val code = Http("http://" + remoteAddr + endpoints.failure).postData("Something went terribly wrong").asString.code
           logger.info("Status " + code)
       }
 
