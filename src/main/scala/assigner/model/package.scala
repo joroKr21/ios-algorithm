@@ -33,6 +33,7 @@ package object model {
     val mandatory      = false
     val diverse        = false
     val iterations     = 20
+    val initialMoves   = 100
     val startingPoints = 1
     val tabuSize       = 5
     val studentSkills  = Map.empty[SkillId, Double]

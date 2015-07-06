@@ -11,6 +11,7 @@ import assigner._
  */
 case class Settings(
     iterations:     Int     = default.iterations,
+    initialMoves:   Int     = default.initialMoves,
     startingPoints: Int     = default.startingPoints,
     tabuSize:       Int     = default.tabuSize,
     diverse:        Boolean = default.diverse) {
@@ -22,18 +23,21 @@ case class Settings(
    * @return a sequence of any [[Warning]]s and [[Error]]s in the data.
    */
   def validate: Seq[Validation] = {
-    val negIterations = maybeErr(iterations <= 0,
+    val negIt = maybeErr(iterations <= 0,
       s"Non-positive number of iterations: $iterations")
 
-    val negStartingPoints = maybeErr(startingPoints <= 0,
+    val negSp = maybeErr(startingPoints <= 0,
       s"Non-positive number of starting points: $startingPoints")
 
-    val negTabuSize = maybeWarn(tabuSize <= 0,
+    val negTs = maybeWarn(tabuSize <= 0,
       s"Tabu list will not be used due to a non-positive size of $tabuSize")
 
-    val tabuIterations = maybeWarn(tabuSize >= iterations,
+    val tabuIt = maybeWarn(tabuSize >= iterations,
       s"The size of tabu list: $tabuSize > number of iterations: $iterations")
 
-    flatten(negIterations, negStartingPoints, negTabuSize, tabuIterations)
+    val negIm = maybeErr(initialMoves < 0,
+      s"Negative number of random initial moves: $initialMoves")
+
+    flatten(negIt, negSp, negTs, tabuIt, negIm)
   }
 }
