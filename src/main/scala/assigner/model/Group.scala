@@ -4,20 +4,20 @@ import assigner._
 
 /**
  * Store all relevant immutable data about a group.
- * @param id ID of this group, should be unique and != -1
- * @param minSize minimal number of participants
- * @param maxSize maximal number of participants
+ * @param id        ID of this group, should be unique and != -1
+ * @param minSize   minimal number of participants
+ * @param maxSize   maximal number of participants
  * @param mandatory may this group be dropped from the course?
- * @param name name of this group
- * @param skills [[Set]] of skills relevant for this group
+ * @param name      name of this group
+ * @param skills    [[Set]] of skills relevant for this group
  */
 case class Group(
-                  id: GroupId,
-                  minSize: Int,
-                  maxSize: Int,
-                  mandatory: Boolean = default.mandatory,
-                  name: String = default.name,
-                  skills: Set[SkillId] = default.groupSkills) {
+    id:        GroupId,
+    minSize:   Int,
+    maxSize:   Int,
+    mandatory: Boolean      = default.mandatory,
+    name:      String       = default.name,
+    skills:    Set[SkillId] = default.groupSkills) {
 
   /**
    * Validate this group's data.

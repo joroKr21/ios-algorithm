@@ -39,7 +39,7 @@ package object assigner {
       self.groupBy(k).mapValues(_.size)
   }
 
-  implicit class MeanVar[A](self: Traversable[A]) extends AnyVal {
+  implicit class MeanVar[A](val self: Traversable[A]) extends AnyVal {
     import Fractional.Implicits._
 
     /** @return the mean of all elements in this sequence */

@@ -10,9 +10,9 @@ import org.coinor.opents._
  * @param groupMap [[Map]] of [[GroupId]] to students in that group
  */
 case class Assignment(
-                       var studentMap: Map[StudentId, GroupId],
-                       var groupMap: Map[GroupId, Set[StudentId]])
-  extends SolutionAdapter {
+      var studentMap: Map[StudentId, GroupId],
+      var groupMap:   Map[GroupId, Set[StudentId]])
+    extends SolutionAdapter {
 
   var lastMove: Move = _
 
@@ -24,7 +24,7 @@ case class Assignment(
 
   /** @return `groupMap` without empty groups and the waiting list */
   def trueGroups: Map[GroupId, Set[StudentId]] =
-    groupMap.filterNot { case (g, ss) => g.isQueue || ss.isEmpty }
+    groupMap filterNot { case (g, ss) => g.isQueue || ss.isEmpty }
 
   /**
    * Extract the IDs of all [[Student]]s currently in the waiting list.
@@ -33,13 +33,13 @@ case class Assignment(
    */
   def queue(implicit o: Ordering[StudentId]): List[StudentId] = {
     val waiting = for ((s, default.queueId) <- studentMap) yield s
-    waiting.toList.sorted(o)
+    waiting.toList sorted o
   }
 
   override def clone = {
     val copy = super.clone.asInstanceOf[Assignment]
     copy.studentMap = studentMap
-    copy.groupMap = groupMap
+    copy.groupMap   = groupMap
     copy
   }
 }

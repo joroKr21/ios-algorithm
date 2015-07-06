@@ -1,7 +1,8 @@
 package assigner.service
 
 import assigner._
-import assigner.search.Assigner
+import assigner.model._
+import assigner.search._
 import org.json4s.jackson.Serialization._
 import org.json4s.{DefaultFormats, Formats, _}
 import org.scalatra.ScalatraServlet
@@ -19,7 +20,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
   protected implicit val jsonFormats: Formats = DefaultFormats
 
   // A map in memory where we save all the jobs we run
-  val courseMap = scala.collection.mutable.Map[Int, Boolean]()
+  val courseMap = scala.collection.mutable.Map[Long, Boolean]()
 
   // Before every action runs, set the content type to be in JSON format.
   before() {
@@ -42,7 +43,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
     logger.info(s"Got request body: ${request.body}")
     val input = parsedBody.extract[Course]
     val endpoints = input.endpoints
-    val courseId: Int = input.courseId
+    val courseId: Long = input.jobId
     if (courseMap.contains(courseId) && !courseMap(courseId)) {
       "Algorithm is still running"
     } else {

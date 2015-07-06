@@ -4,16 +4,16 @@ import assigner._
 
 /**
  * Configuration data for running an instance of the algorithm.
- * @param iterations number of iterations without improvement to stop
+ * @param iterations     number of iterations without improvement to stop
  * @param startingPoints number of different initial assignments to check
- * @param tabuSize size of the tabu list / queue
- * @param diverse should the algorithm optimize diversity or equality?
+ * @param tabuSize       size of the tabu list / queue
+ * @param diverse        should the algorithm optimize diversity or equality?
  */
 case class Settings(
-                     iterations: Int = default.iterations,
-                     startingPoints: Int = default.startingPoints,
-                     tabuSize: Int = default.tabuSize,
-                     diverse: Boolean = default.diverse) {
+    iterations:     Int     = default.iterations,
+    startingPoints: Int     = default.startingPoints,
+    tabuSize:       Int     = default.tabuSize,
+    diverse:        Boolean = default.diverse) {
 
   /**
    * Validate the configuration.
