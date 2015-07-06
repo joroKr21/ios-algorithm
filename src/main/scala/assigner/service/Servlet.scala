@@ -53,7 +53,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
       val f: Future[Assignment] = Future {
         val assigner = new Assigner(input)
 
-        assigner.solve()
+        assigner.solution()
       }
 
       // Callback when the algorithm is finished async

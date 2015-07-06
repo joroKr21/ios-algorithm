@@ -14,7 +14,7 @@ class Assigner(course: Course) {
   val manager    = new Manager(normalized)
   val objective  = new Objective(normalized)
 
-  def solve(): Assignment = {
+  def solution: Assignment = {
     // TODO: Test the impact of using MultiThreadedTabuSearch
     val tabuSearch = new SingleThreadedTabuSearch(
       new StartingPoint(normalized),
