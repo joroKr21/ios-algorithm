@@ -26,15 +26,16 @@ case class Assignment(
   def trueGroups: Map[GroupId, Set[StudentId]] =
     groupMap filterNot { case (g, ss) => g.isQueue || ss.isEmpty }
 
+  /** @return a [[Set]] of all [[Student]]s currently in the waiting list */
+  def queue: Set[StudentId] = studentsIn(default.queueId)
+
   /**
    * Extract the IDs of all [[Student]]s currently in the waiting list.
    * @param o implicit ordering scheme for the students
    * @return an ordered list of students in the queue
    */
-  def queue(implicit o: Ordering[StudentId]): List[StudentId] = {
-    val waiting = for ((s, default.queueId) <- studentMap) yield s
-    waiting.toList sorted o
-  }
+  def waitingList(implicit o: Ordering[StudentId]): List[StudentId] =
+    queue.toList sorted o
 
   override def clone = {
     val copy = super.clone.asInstanceOf[Assignment]

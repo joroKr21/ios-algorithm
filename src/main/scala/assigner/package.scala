@@ -1,11 +1,7 @@
-import org.slf4j.LoggerFactory
-
 import scala.util.Random
 
 /** Syntactic sugar and utility methods. */
 package object assigner {
-
-  def logger = LoggerFactory.getLogger(this.getClass)
 
   /**
    * Flatten all [[Traversable]] arguments into a single sequence.
@@ -26,8 +22,7 @@ package object assigner {
      * Count the number of occurrences of elements in this sequence.
      * @return a [[Map]] with counts of the occurrences of each element
      */
-    def freq: Map[A, Int] =
-      self.groupBy(identity).mapValues(_.size)
+    def freq: Map[A, Int] = freqBy(identity)
 
     /**
      * Count the number of occurrences of each key in this sequence.
@@ -36,7 +31,7 @@ package object assigner {
      * @return a [[Map]] with counts of the occurrences of each key
      */
     def freqBy[K](k: A => K): Map[K, Int] =
-      self.groupBy(k).mapValues(_.size)
+      self groupBy k mapValues { _.size }
   }
 
   implicit class MeanVar[A](val self: Traversable[A]) extends AnyVal {
@@ -49,8 +44,8 @@ package object assigner {
     /** @return the variance of all elements in this sequence */
     def variance(implicit f: Fractional[A]): A = {
       def sqr(x: A) = x * x
-      val m = self.mean
-      self.map(x => sqr(x - m)).mean
+      val m         = self.mean
+      self.map { x => sqr(x - m) }.mean
     }
   }
 
@@ -75,17 +70,22 @@ package object assigner {
 
   implicit class Shuffle[A](val self: List[A]) extends AnyVal {
     /** @return this [[List]] in arbitrary order */
-    def shuffle: List[A] = Random.shuffle(self)
+    def shuffle: List[A] = Random shuffle self
   }
 
   implicit class Normalize[K, V](val self: Map[K, V]) extends AnyVal {
     import Fractional.Implicits._
 
-    /** @return this [[Map]] with its values normalized */
-    def normalized(implicit f: Fractional[V]): Map[K, V] = {
-      val sum = self.values.sum
+    /**
+     * Normalize all values in a [[Map]] according to a scale.
+     * @param scale all values will lie in [-scale, scale]
+     * @param f     implicit [[Fractional]] type class
+     * @return this [[Map]] with its values normalized
+     */
+    def normalized(scale: V)(implicit f: Fractional[V]): Map[K, V] = {
+      val sum = self.values.sum / scale
       if (sum == f.fromInt(0)) self
-      else self.mapValues(_ / sum)
+      else self mapValues { _ / sum }
     }
   }
 
@@ -117,6 +117,7 @@ package object assigner {
   
   implicit class Reverse[K, V](val self: Map[K, V]) extends AnyVal {
     /** @return a new [[Map]] with the keys and values swapped */
-    def reversed: Map[V, Set[K]] = self.groupBy(_._2).mapValues(_.keySet)
+    def reversed: Map[V, Set[K]] =
+      self groupBy { _._2 } mapValues { _.keySet }
   }
 }

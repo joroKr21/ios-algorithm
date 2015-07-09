@@ -24,22 +24,21 @@ class Objective(course: Course) extends ObjectiveFunction {
 
   val withWeights = for {
     (key, fun) <- criteria
-    weight      = course.weights.getOrElse(key, 1.0)
+    weight = course.weights.getOrElse(key, 1.0)
     if weight != 0
   } yield key -> (weight, fun)
 
-  def evaluate(solution: Solution, move: Move) = {
-    def eval(solution: Solution) =
-      Array(components(solution).values.sum)
-
+  def evaluate(solution: Solution, move: Move) =
     if (move == null) {
-      eval(solution)
+      Array(score(solution))
     } else {
-      val assign = solution.asInstanceOf[Assignment].clone
-      move.operateOn(assign)
-      eval(assign)
+      val assignment = solution.asInstanceOf[Assignment].clone
+      move.operateOn(assignment)
+      Array(score(assignment))
     }
-  }
+
+  /**  @return the weighted overall score of `solution` */
+  def score(solution: Solution) = components(solution).values.sum
 
   /**
    * Calculate all components of the score separately.
@@ -47,8 +46,8 @@ class Objective(course: Course) extends ObjectiveFunction {
    * @return a [[Map]] of criteria keys -> component score
    */
   def components(solution: Solution): Map[String, Double] = solution match {
-    case assign: Assignment =>
-      withWeights mapValues { case (w, f) => w * f(assign) }
+    case assignment: Assignment =>
+      withWeights mapValues { case (w, f) => w * f(assignment) }
     case _ => Map.empty
   }
 
@@ -67,7 +66,7 @@ class Objective(course: Course) extends ObjectiveFunction {
         skill    <- skills | groups(g).skills
       } yield skill -> skillMaps.map { _(skill) }.max
     } groupBy { _._1 } map { _._2.values.min }
-    minSkills.min * minSkills.sum
+    if (minSkills.isEmpty) 0 else minSkills.min * minSkills.sum
   }
 
   /**
@@ -78,12 +77,12 @@ class Objective(course: Course) extends ObjectiveFunction {
    */
   def maximallyDiverse(assignment: Assignment): Double = {
     for {
-      (g, ss)         <- assignment.trueGroups.toSeq
-      relevant         = skills | groups(g).skills
-      s1 #:: s2 #:: _ <- ss.toStream combinations 2
-      skillMap1        = students(s1).skills withDefaultValue 0.0
-      skillMap2        = students(s2).skills withDefaultValue 0.0
-      skill           <- relevant
+      (g, ss)     <- assignment.trueGroups
+      relevant     = skills | groups(g).skills
+      Seq(s1, s2) <- ss.toSeq combinations 2
+      skillMap1    = students(s1).skills withDefaultValue 0.0
+      skillMap2    = students(s2).skills withDefaultValue 0.0
+      skill       <- relevant
     } yield (skillMap1(skill) - skillMap2(skill)).abs
   }.sum
 
@@ -97,7 +96,7 @@ class Objective(course: Course) extends ObjectiveFunction {
   def groupPreferences(useWeights: Boolean)
                       (assignment: Assignment): Double = {
     for {
-      (s, g) <- assignment.studentMap
+      (s, g)   <- assignment.studentMap
       if !g.isQueue
       student   = students(s)
       weightMap = student.weights withDefaultValue 0.5
@@ -116,7 +115,7 @@ class Objective(course: Course) extends ObjectiveFunction {
   def friendsAndFoes(useWeights: Boolean)
                     (assignment: Assignment): Double = {
     for {
-      (s1, g) <- assignment.studentMap
+      (s1, g)  <- assignment.studentMap
       if !g.isQueue
       student   = students(s1)
       weightMap = student.weights withDefaultValue 0.5

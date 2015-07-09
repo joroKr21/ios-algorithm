@@ -7,28 +7,31 @@ import assigner.model._
  * number of groups in the `course`.
  */
 class BruteForce(course: Course) {
-  val students  = course.studentMap
-  val groups    = course.groupMap
-  val objective = new Objective(course)
+  private val students  = course.studentMap
+  private val groups    = course.groupMap
+          val objective = new Objective(course)
 
   /** Recursive function to generate all possible [[Assignment]]s. */
   def assign(
       students: Map[StudentId, Student] = students,
       groups:   Map[GroupId,   Group]   = groups): Stream[Assignment] =
     if (groups.isEmpty || students.size < groups.values.map { _.minSize }.min) {
-      val studentMap = students mapValues { _ => -1l }
-      val groupMap   = groups   mapValues { _ => Set.empty[StudentId] }
-      Assignment(studentMap, groupMap) #:: Stream.empty
+      if (students.values exists { _.mandatory }) Stream.empty else {
+        val studentMap = students mapValues { _ => -1l }
+        val groupMap   = groups   mapValues { _ => Set.empty[StudentId] }
+        val queue      = default.queueId -> students.keySet
+        Assignment(studentMap, groupMap + queue) #:: Stream.empty
+      }
     } else {
       for {
         (g, group) <- groups.toStream
         size       <- group.minSize to (group.maxSize min students.size)
-        selection  <- students.keys.toStream combinations size
+        selection  <- students.keySet subsets size
         assignment <- assign(students -- selection, groups - g)
         studentMap  = assignment.studentMap ++ selection.map { _ -> g }
-        groupMap    = assignment.groupMap + (g -> selection.toSet)
+        groupMap    = assignment.groupMap    + (g -> selection)
       } yield Assignment(studentMap, groupMap)
     }.distinct
 
-  def solution = assign() maxBy { objective.evaluate(_, null)(0) }
+  def solution = assign() maxBy objective.score
 }

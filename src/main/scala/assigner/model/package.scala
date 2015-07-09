@@ -32,6 +32,7 @@ package object model {
     val name           = ""
     val mandatory      = false
     val diverse        = false
+    val scale          = 10
     val iterations     = 20
     val initialMoves   = 100
     val startingPoints = 1
