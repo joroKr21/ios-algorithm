@@ -23,13 +23,18 @@ trait DataGen {
   } map { _.toMap }
 
   def normalizedLocalWeightGen(min: Double = 0, max: Double = 10):
-      Gen[Map[String, Double]] = for {
-    preferences <- choose(min, max)
-    friends     <- choose(min, max)
-    sum          = preferences + friends
-    ps           = preferences / sum
-    fs           = friends     / sum
-  } yield Map("preferences" -> ps, "friends" -> fs)
+      Gen[Map[String, Double]] =
+    for (weights <- listOfN(2, choose(min, max)))
+      yield Seq("groupPreferences",
+                "friendsAndFoes").zip(weights).toMap normalized 1
+
+  def normalizedGlobalWeightGen(min: Double = 0, max: Double = 10):
+      Gen[Map[String, Double]] =
+    for (weights <- listOfN(4, choose(min, max)))
+      yield Seq("maximallyDiverse",
+                "evenlySkilled",
+                "groupPreferences",
+                "friendsAndFoes").zip(weights).toMap normalized 1
 
   def permutationGen[A](seq: Seq[A]): Gen[Seq[A]] =
     oneOf(seq.permutations.toStream)
@@ -46,8 +51,8 @@ trait DataGen {
   def groupGen(
         n:            Int,
         skillGen:     Gen[Set[String]],
-        sizeGen:      Gen[(Int, Int)] = minMaxGroupSizeGen(4, 6),
-        mandatoryGen: Gen[Boolean]    = const(true)):
+        sizeGen:      Gen[(Int, Int)],
+        mandatoryGen: Gen[Boolean] = const(true)):
       Gen[List[Group]] = sequence {
     for (id <- 1 to n) yield for {
       (min, max) <- sizeGen
@@ -63,7 +68,7 @@ trait DataGen {
         friendGen:    Gen[Set[StudentId]],
         prefGen:      Gen[Map[GroupId, Double]],
         weightGen:    Gen[Map[String,  Double]] = normalizedLocalWeightGen(),
-        mandatoryGen: Gen[Boolean]              = const(false),
+        mandatoryGen: Gen[Boolean]              = arbitrary[Boolean],
         skillGen:     Gen[Double]               = choose(1, 5),
         foeGen:       Gen[Set[StudentId]]       = const(Set.empty)):
       Gen[List[Student]] = sequence {
@@ -85,7 +90,8 @@ trait DataGen {
         numStudentsGen: Gen[Int],
         numGroupsGen:   Gen[Int],
         numSkillsGen:   Gen[Int],
-        weightGen:      Gen[Map[String, Double]] = const(default.globalWeights)):
+        groupSizeGen:   Gen[(Int, Int)],
+        weightGen:      Gen[Map[String, Double]] = normalizedGlobalWeightGen()):
       Gen[Course] = for {
     id          <- posNum[Long]
     numStudents <- numStudentsGen
@@ -96,15 +102,16 @@ trait DataGen {
     subSkills   <- minMaxSubSeqGen(skills, 1, skills.size) map { _.toSet }
     weights     <- weightGen
 
-    students    <- studentGen(
+    students   <- studentGen(
       n         = numStudents,
       skills    = skills.toSet,
       friendGen = listOf(choose(1l, numStudents.toLong)) map { _.toSet },
       prefGen   = normalizedWeightGen((1l to numGroups).toSet))
 
-    groups      <- groupGen(
+    groups    <- groupGen(
       n        = numGroups,
-      skillGen = minMaxSubSeqGen(skills, 1, skills.size) map { _.toSet })
+      skillGen = minMaxSubSeqGen(skills, 1, skills.size) map { _.toSet },
+      sizeGen  = groupSizeGen)
   } yield Course(id, settings, endpoints, students, groups, subSkills, weights)
 
   def arbitrary[A: Arbitrary]: Gen[A] =

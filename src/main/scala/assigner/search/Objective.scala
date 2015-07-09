@@ -24,7 +24,7 @@ class Objective(course: Course) extends ObjectiveFunction {
 
   val withWeights = for {
     (key, fun) <- criteria
-    weight = course.weights.getOrElse(key, 1.0)
+    weight = course.weights.getOrElse(key, 0.0)
     if weight != 0
   } yield key -> (weight, fun)
 
@@ -100,7 +100,7 @@ class Objective(course: Course) extends ObjectiveFunction {
       if !g.isQueue
       student   = students(s)
       weightMap = student.weights withDefaultValue 0.5
-      weight    = if (useWeights) weightMap("preferences") else 1.0
+      weight    = if (useWeights) weightMap("groupPreferences") else 1.0
       pref      = student.preferences.getOrElse(g, 0.0)
     } yield weight * pref * groupPreferencesScale
   }.sum
@@ -119,7 +119,7 @@ class Objective(course: Course) extends ObjectiveFunction {
       if !g.isQueue
       student   = students(s1)
       weightMap = student.weights withDefaultValue 0.5
-      weight    = if (useWeights) weightMap("friends") else 1.0
+      weight    = if (useWeights) weightMap("friendsAndFoes") else 1.0
       s2       <- assignment studentsIn g
     } yield weight * {
       if      (student friends s2)  friendsAndFoesScale
