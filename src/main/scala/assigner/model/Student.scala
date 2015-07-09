@@ -23,11 +23,15 @@ case class Student(
     friends:     Set[StudentId]       = default.friends,
     foes:        Set[StudentId]       = default.foes) {
 
-  /** @return this student with all weights normalized */
-  def normalized: Student = copy(
-    skills      = skills.normalized,
-    weights     = weights.normalized,
-    preferences = preferences.normalized)
+  /**
+   * Normalize all weights for this student.
+   * @param scale all weights will lie in [-scale, scale]
+   * @return this student with all weights normalized
+   */
+  def normalized(scale: Double = default.scale): Student = copy(
+    skills      = skills      normalized scale,
+    weights     = weights     normalized scale,
+    preferences = preferences normalized scale)
   
   /**
    * Validate this student's data.

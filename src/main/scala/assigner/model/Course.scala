@@ -2,6 +2,8 @@ package assigner.model
 
 import assigner._
 
+import scala.collection.SortedMap
+
 /**
  * Store all relevant immutable data about a course.
  * @param jobId     job ID associated with this course, should be unique
@@ -25,20 +27,24 @@ case class Course(
   lazy val dropGroups = students.size < groups.sumBy { _.minSize }
 
   /** @return map of student ID -> student */
-  def studentMap: Map[StudentId, Student] =
-    students.map { s => s.id -> s }.toMap
+  def studentMap: SortedMap[StudentId, Student] =
+    SortedMap[StudentId, Student]() ++ students.map { s => s.id -> s }.toMap
 
   /** @return map of group ID -> group */
-  def groupMap: Map[GroupId, Group] =
-    groups.map { g => g.id -> g }.toMap
+  def groupMap: SortedMap[GroupId, Group] =
+    SortedMap[GroupId, Group]() ++ groups.map { g => g.id -> g }.toMap
 
   /** @return `true` if global weights are enabled for this course */
   def hasGlobalWeights: Boolean = weights.nonEmpty
 
-  /** @return this course with all weights normalized */
-  def normalized: Course = copy(
-    students = students map { _.normalized },
-    weights  = weights.normalized)
+  /**
+   * Normalize all weights in the course.
+   * @param scale all weights will lie in [-scale, scale]
+   * @return this course with all weights normalized
+   */
+  def normalized(scale: Double = default.scale): Course = copy(
+    students = students map { _ normalized scale },
+    weights  = weights normalized scale)
 
   /**
    * Validate this course's data.
