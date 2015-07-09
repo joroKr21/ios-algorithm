@@ -57,7 +57,7 @@ class Objective(course: Course) extends ObjectiveFunction {
    * Calculate the score of this assignment for even distribution of skills.
    * This is a global criterion, only one of which should be enabled at a time.
    * @param assignment the assignment to test
-   * @return the score
+   * @return           the score
    */
   def evenlySkilled(assignment: Assignment): Double = {
     val minSkills = {
@@ -73,8 +73,8 @@ class Objective(course: Course) extends ObjectiveFunction {
   /**
    * Calculate the score of this assignment for maximal diversity of skills.
    * This is a global criterion, only one of which should be enabled at a time.
-   * @param assignment the assignment to test
-   * @return the score
+   * @param assignment  the assignment to test
+   * @return            the score
    */
   def maximallyDiverse(assignment: Assignment): Double = {
     for {
@@ -90,9 +90,9 @@ class Objective(course: Course) extends ObjectiveFunction {
   /**
    * Calculate the score of this assignment for group preferences.
    * This is a local criterion, calculated per-student and summed up.
-   * @param useWeights should local weights (per-student) be enabled?
-   * @param assignment     the assignment to test
-   * @return the score
+   * @param useWeights    should local weights (per-student) be enabled?
+   * @param assignment    the assignment to test
+   * @return              the score
    */
   def groupPreferences(useWeights: Boolean)
                       (assignment: Assignment): Double = {
@@ -109,9 +109,9 @@ class Objective(course: Course) extends ObjectiveFunction {
   /**
    * Calculate the score of this assignment for friends and foes.
    * This is a local criterion, calculated per-student and summed up.
-   * @param useWeights should local weights (per-student) be enabled?
-   * @param assignment the assignment to test
-   * @return the score
+   * @param useWeights    should local weights (per-student) be enabled?
+   * @param assignment    the assignment to test
+   * @return              the score
    */
   def friendsAndFoes(useWeights: Boolean)
                     (assignment: Assignment): Double = {
