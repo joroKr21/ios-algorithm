@@ -47,7 +47,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
     val validation = course.validate.jsonMap
     if (validation contains "errors") validation else {
       val endpoints = course.endpoints
-      val id        = course.jobId
+      val id        = course.id
       
       if (courseMap.contains(id) && !courseMap(id)) {
         err("Job still running").jsonMap merge jobId(id)

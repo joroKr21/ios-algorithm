@@ -6,7 +6,7 @@ import scala.collection.SortedMap
 
 /**
  * Store all relevant immutable data about a course.
- * @param jobId     job ID associated with this course, should be unique
+ * @param id        job ID associated with this course, should be unique
  * @param settings  configuration data for the algorithm instance
  * @param endpoints endpoint URLs for posting back the result
  * @param students  [[List]] of all [[Student]]s in the course
@@ -15,7 +15,7 @@ import scala.collection.SortedMap
  * @param weights   global weights for components of the objective function
  */
 case class Course(
-    jobId:     CourseId,
+    id:        CourseId,
     settings:  Settings,
     endpoints: Endpoints,
     students:  List[Student],
@@ -60,12 +60,12 @@ case class Course(
 
     val sameSs = students.map { _.id }.freq collect {
       case (s, n) if n > 1 =>
-        warn(s"Student $jobId occurs $n times in the data")
+        warn(s"Student $id occurs $n times in the data")
     }
 
     val sameGs = groups.map { _.id }.freq collect {
       case (g, n) if n > 1 =>
-        warn(s"Group $jobId occurs $n times in the data")
+        warn(s"Group $id occurs $n times in the data")
     }
 
     val mandatoryStudents = students count { _.mandatory }
