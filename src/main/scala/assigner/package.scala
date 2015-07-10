@@ -1,3 +1,4 @@
+import scala.collection.{SortedMap, SortedSet}
 import scala.util.Random
 
 /** Syntactic sugar and utility methods. */
@@ -119,5 +120,13 @@ package object assigner {
     /** @return a new [[Map]] with the keys and values swapped */
     def reversed: Map[V, Set[K]] =
       self groupBy { _._2 } mapValues { _.keySet }
+  }
+
+  implicit class SortMap[K, V](val self: Map[K, V]) extends AnyVal {
+    def sorted(implicit o: Ordering[K]) = SortedMap(self.toSeq: _*)
+  }
+
+  implicit class SortSet[A](val self: Set[A]) extends AnyVal {
+    def sorted(implicit o: Ordering[A]) = SortedSet(self.toSeq: _*)
   }
 }

@@ -31,7 +31,7 @@ class Manager(course: Course) extends MoveManager {
       } yield Switch(s, g2)
 
       val refills = for {
-        (g, ss) <- assignment.groupMap
+        (g, ss) <- assignment.groupMap.view
         if !g.isQueue && ss.isEmpty
         size  = groups(g).minSize
         if size > 0
@@ -43,6 +43,7 @@ class Manager(course: Course) extends MoveManager {
       val drops = if (course.dropGroups) for {
           g <- assignment.trueGroups.keys
           if !groups(g).mandatory
+          if assignment studentsIn g forall { !students(_).mandatory }
         } yield DropGroup(g)
       else Nil
 

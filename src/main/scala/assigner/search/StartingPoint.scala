@@ -8,8 +8,12 @@ import scala.collection.SortedSet
 /** Random starting point generator. */
 object StartingPoint {
   def apply(course: Course): Assignment = {
-    val studentMap = course.studentMap mapValues { _ => default.queueId }
-    val groupMap   = course.groupMap   mapValues { _ => SortedSet.empty[StudentId] }
+    val studentMap =
+      course.studentMap.sorted mapValues { _ => default.queueId }
+
+    val groupMap =
+      course.groupMap.sorted mapValues { _ => SortedSet.empty[StudentId] }
+
     val queue      = default.queueId -> studentMap.keySet
     val manager    = new Manager(course)
     val assignment = Assignment(studentMap, groupMap + queue)
@@ -20,6 +24,16 @@ object StartingPoint {
         case Nil =>
       }
     }
+
+//    val students = course.studentMap partition { _._2.mandatory } match {
+//      case (mandatory, elective) =>
+//        mandatory.toList.shuffle ::: elective.toList.shuffle
+//    }
+//
+//    val groups = course.groupMap partition { _._2.mandatory } match {
+//      case (mandatory, elective) =>
+//        mandatory.toList.shuffle ::: elective.toList.shuffle
+//    }
 
     assignment
   }
