@@ -10,6 +10,9 @@ class ImplicitSpec extends FlatSpec with Matchers with PropertyChecks {
 
   val epsilon = 1e-10
 
+  implicit override val generatorDrivenConfig =
+    PropertyCheckConfig(workers = 2)
+
   "flatten" should "yield the original elements" in {
     forAll { xss: Seq[Seq[Int]] =>
       val flat = flatten(xss: _*)
@@ -121,6 +124,22 @@ class ImplicitSpec extends FlatSpec with Matchers with PropertyChecks {
       val reversed = map.reversed
       reversed.keys           should contain theSameElementsAs map.values.toSet
       reversed.values.flatten should contain theSameElementsAs map.keys
+    }
+  }
+
+  "sorted" should "convert a Map to a SortedMap" in {
+    forAll { map: Map[String, String] =>
+      val sortedMap = map.sorted
+      sortedMap should contain theSameElementsAs map
+      sortedMap.keys.toSeq shouldBe sorted
+    }
+  }
+
+  it should "convert a Set to a SortedSet" in {
+    forAll { set: Set[String] =>
+      val sortedSet = set.sorted
+      sortedSet should contain theSameElementsAs set
+      sortedSet.toSeq shouldBe sorted
     }
   }
 }

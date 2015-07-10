@@ -1,16 +1,30 @@
 package assigner
 
 import assigner.model._
-import assigner.search.Assigner
 import assigner.search._
+
 import org.junit.runner.RunWith
+import org.scalacheck.Gen._
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.prop.PropertyChecks
 
 @RunWith(classOf[JUnitRunner])
-class AssignerSpec extends FlatSpec with Matchers {
+class AssignerSpec extends FlatSpec with Matchers with PropertyChecks with DataGen {
 
-  "The algorithm" should "terminate with desired results" in {
+  val depth   = 3
+  val courses = courseGen(
+    settings       = Settings(),
+    endpoints      = Endpoints("http://localhost", "http://localhost"),
+    numStudentsGen = choose(20, 30),
+    numGroupsGen   = const(5),
+    numSkillsGen   = choose(2, 3),
+    groupSizeGen   = minMaxGroupSizeGen(4, 6))
+
+  implicit override val generatorDrivenConfig =
+    PropertyCheckConfig(minSuccessful = 10, workers = 2)
+
+  "tabu search" should "terminate with a correct number of results" in {
     val students = Set(
       Student(id = 0, name = "Student 0", mandatory = true, skills = Map("1" -> 5, "2" -> 3, "3" -> 4),
         preferences = Map(2l -> 3, 1l -> 2, 0l -> 1), friends = Set(4)),
@@ -41,14 +55,36 @@ class AssignerSpec extends FlatSpec with Matchers {
     ).map { g => g.id -> g }.toMap
 
     val settings = Settings(diverse = false, iterations = 20)
-    val course   = Course(1, settings, Endpoints("", ""),
+    val course   = Course(1, settings, Endpoints("http://localhost", "http://localhost"),
       students.values.toList, groups.values.toList, Set("1", "2", "3"))
 
     val assigner   = new Assigner(course)
     val assignment = assigner.solution
 
-    println(assignment.groupMap)
     assignment.studentMap should have size students.size
     assignment.groupMap   should have size groups.size + 1
+  }
+
+  it should "find a local optimum of the objective function" in {
+    forAll(courses) { course: Course =>
+      whenever(course.validate forall { !_.isInstanceOf[Error] }) {
+        val assigner     = new Assigner(course normalized 10)
+        val manager      = assigner.manager
+        val objective    = assigner.objective
+        val solution     = assigner.solution
+        val score        = objective score solution
+        val alternatives = Stream.iterate(Iterator(solution), depth) {
+          _ flatMap { assignment =>
+            for (mv <- manager getAllMoves assignment) yield {
+              val clone = assignment.clone
+              mv.operateOn(clone)
+              clone
+            }
+          }
+        }
+
+        all(alternatives.flatten map objective.score) should be <= score
+      }
+    }
   }
 }
