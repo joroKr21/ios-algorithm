@@ -15,18 +15,18 @@ class Spec extends FunSuite with Matchers with PropertyChecks with DataGen {
   val courses = courseGen(
       settings       = Settings(),
       endpoints      = Endpoints("http://localhost", "http://localhost"),
-      numStudentsGen = choose(6, 9),
+      numStudentsGen = choose(9, 15),
       numGroupsGen   = const(3),
       numSkillsGen   = choose(2, 3),
-      groupSizeGen   = minMaxGroupSizeGen(2, 3))
+      groupSizeGen   = minMaxGroupSizeGen(3, 5))
 
   test("Let's see") {
     var difference = 0.0
     var courseCount = 0
-    forAll(courses) { course: Course =>
+    forAll(courses, minSuccessful(10)) { course: Course =>
       whenever(course.validate forall { !_.isInstanceOf[Error] }) {
         courseCount = courseCount + 1
-        val normalized = course.normalized(1)
+        val normalized = course normalized 10
         val assigner = new Assigner(normalized)
         val bruteForce = new BruteForce(normalized)
         val objective = new Objective(normalized)

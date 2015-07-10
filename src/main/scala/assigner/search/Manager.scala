@@ -21,8 +21,8 @@ class Manager(course: Course) extends MoveManager {
       } yield Swap(s1, s2)
 
       val switches = for {
-        (g1, ss1) <- assignment.groupMap
-        (g2, ss2) <- assignment.groupMap
+        (g1, ss1) <- assignment.groupMap.iterator
+        (g2, ss2) <- assignment.groupMap.iterator
         if g1 != g2 && !g2.isQueue
         if g1.isQueue || ss1.size > groups(g1).minSize
         if ss2.size >= groups(g2).minSize
@@ -31,7 +31,7 @@ class Manager(course: Course) extends MoveManager {
       } yield Switch(s, g2)
 
       val refills = for {
-        (g, ss) <- assignment.groupMap.view
+        (g, ss) <- assignment.groupMap.iterator
         if !g.isQueue && ss.isEmpty
         size  = groups(g).minSize
         if size > 0
@@ -41,11 +41,11 @@ class Manager(course: Course) extends MoveManager {
       } yield FillGroup(g, selection)
 
       val drops = if (course.dropGroups) for {
-          g <- assignment.trueGroups.keys
+          g <- assignment.trueGroups.keys.iterator
           if !groups(g).mandatory
           if assignment studentsIn g forall { !students(_).mandatory }
         } yield DropGroup(g)
-      else Nil
+      else Iterator.empty
 
       (swaps ++ switches ++ refills ++ drops).toArray
   }

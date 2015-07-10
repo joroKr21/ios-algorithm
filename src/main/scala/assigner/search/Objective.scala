@@ -77,7 +77,7 @@ class Objective(course: Course) extends ObjectiveFunction {
    */
   def maximallyDiverse(assignment: Assignment): Double = {
     for {
-      (g, ss)     <- assignment.trueGroups
+      (g, ss)     <- assignment.trueGroups.iterator
       relevant     = skills | groups(g).skills
       Seq(s1, s2) <- ss.toSeq combinations 2
       skillMap1    = students(s1).skills withDefaultValue 0.0
@@ -96,7 +96,7 @@ class Objective(course: Course) extends ObjectiveFunction {
   def groupPreferences(useWeights: Boolean)
                       (assignment: Assignment): Double = {
     for {
-      (s, g)   <- assignment.studentMap
+      (s, g)   <- assignment.studentMap.iterator
       if !g.isQueue
       student   = students(s)
       weightMap = student.weights withDefaultValue 0.5
@@ -115,7 +115,7 @@ class Objective(course: Course) extends ObjectiveFunction {
   def friendsAndFoes(useWeights: Boolean)
                     (assignment: Assignment): Double = {
     for {
-      (s1, g)  <- assignment.studentMap
+      (s1, g)  <- assignment.studentMap.iterator
       if !g.isQueue
       student   = students(s1)
       weightMap = student.weights withDefaultValue 0.5

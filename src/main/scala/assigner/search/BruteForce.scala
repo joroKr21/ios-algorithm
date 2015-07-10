@@ -27,16 +27,14 @@ class BruteForce(course: Course) {
         val queue      = default.queueId -> students.keySet
         Iterator(Assignment(studentMap, groupMap + queue))
       }
-    } else {
-      for {
-        (g, group) <- groups.iterator
-        size       <- group.minSize to (group.maxSize min students.size)
-        selection  <- students.keySet subsets size
-        assignment <- assign(students -- selection, groups - g)
-        studentMap  = assignment.studentMap ++ selection.map { _ -> g }
-        groupMap    = assignment.groupMap    + (g -> selection)
-      } yield Assignment(studentMap, groupMap)
-    }
-
+    } else for {
+      (g, group) <- groups.iterator
+      size       <- group.minSize to (group.maxSize min students.size)
+      selection  <- students.keySet subsets size
+      assignment <- assign(students -- selection, groups - g)
+      studentMap  = assignment.studentMap ++ selection.map { _ -> g }
+      groupMap    = assignment.groupMap    + (g -> selection)
+    } yield Assignment(studentMap, groupMap)
+  
   def solution = assign() maxBy objective.score
 }
