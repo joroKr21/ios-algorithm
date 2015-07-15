@@ -77,6 +77,7 @@ class Servlet extends ScalatraServlet with JacksonJsonSupport {
         case Success(assignment) =>
           courseMap(courseId) = true
           logger.info(s"Best solution: $assignment")
+          logger.info(s"URL: http://$remoteAddr $endpoints")
           val data = write(Map("courseId" -> courseId,
             "studentMap" -> assignment.studentMap,
             "groupMap" -> assignment.groupMap))
