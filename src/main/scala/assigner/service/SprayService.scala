@@ -74,7 +74,7 @@ object SprayService extends App with SimpleRoutingApp with Json4sJacksonSupport 
           val studentMap = cwa.studentMap.sorted
           val groupMap = cwa.groupMap.mapValues { _.sorted }.sorted
           val assignment = Assignment(studentMap, groupMap)
-          complete((new Objective(course) score assignment).toString)
+          Map("score" -> new Objective(course).score(assignment))
         }
       }
     }

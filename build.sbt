@@ -20,7 +20,6 @@ val versions = new {
 
 libraryDependencies ++= Seq( // Spray
   "io.spray" %% "spray-can"     % versions.spray,
-  "io.spray" %% "spray-json"    % "1.3.2",
   "io.spray" %% "spray-routing" % versions.spray,
   "io.spray" %% "spray-testkit" % versions.spray  % "test")
 

@@ -7,23 +7,11 @@ import org.scalacheck.Gen._
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.prop.PropertyChecks
-import spray.json._
 import org.json4s.jackson.Serialization._
 
 @RunWith(classOf[JUnitRunner])
 class Examples extends FunSuite with Matchers with PropertyChecks with DataGen {
-
   implicit val formats = DefaultFormats
-
-  object CourseJsonProtocol extends DefaultJsonProtocol {
-    implicit val endpointsFormat = jsonFormat2(Endpoints)
-    implicit val settingsFormat  = jsonFormat5(Settings)
-    implicit val studentFormat   = jsonFormat8(Student)
-    implicit val groupFormat     = jsonFormat6(Group)
-    implicit val courseFormat    = jsonFormat7(Course)
-  }
-
-  import CourseJsonProtocol._
 
   val depth   = 3
   val courses = courseGen(
