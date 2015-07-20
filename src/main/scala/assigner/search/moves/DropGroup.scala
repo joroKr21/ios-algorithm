@@ -11,7 +11,7 @@ import scala.collection.SortedSet
  * [[Move]] to drop a whole [[Group]] to the waiting list.
  * @param group ID of the group tp be cancelled
  */
-case class DropGroup(group: GroupId) extends Move {
+case class DropGroup(group: Long) extends Move {
   def operateOn(solution: Solution) = solution match {
     case assignment: Assignment =>
       val queueId  = default.queueId

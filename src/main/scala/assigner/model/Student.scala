@@ -14,14 +14,14 @@ import assigner._
  * @param foes        [[Set]] of the student IDs of all foes
  */
 case class Student(
-    id:          StudentId,
+    id:          Long,
     name:        String               = default.name,
     mandatory:   Boolean              = default.mandatory,
-    skills:      Map[SkillId, Double] = default.studentSkills,
+    skills:      Map[String, Double] = default.studentSkills,
     weights:     Map[String,  Double] = default.localWeights,
-    preferences: Map[GroupId, Double] = default.preferences,
-    friends:     Set[StudentId]       = default.friends,
-    foes:        Set[StudentId]       = default.foes) {
+    preferences: Map[Long, Double] = default.preferences,
+    friends:     Set[Long]       = default.friends,
+    foes:        Set[Long]       = default.foes) {
 
   /**
    * Normalize all weights for this student.
@@ -35,11 +35,11 @@ case class Student(
   
   /**
    * Validate this student's data.
-   * [[Error]]s will prevent the algorithm from running.
-   * [[Warning]]s can be ignored, but are probably faulty input.
-   * @return a sequence of any [[Warning]]s and [[Error]]s in the data.
+   * Errors will prevent the algorithm from running.
+   * Warnings can be ignored, but are probably faulty input.
+   * @return a sequence of any warnings and errors in the data.
    */
-  def validate: Seq[Validation] = {
+  def validate: Validation = {
     val emptySpff = maybeWarn(
       Seq(skills, preferences, friends, foes) forall { _.isEmpty },
       s"Student $id has no skills / preferences / friends / foes")
@@ -47,18 +47,18 @@ case class Student(
     val emptyWeights =
       maybeWarn(weights.isEmpty, s"Student $id has no weights")
 
-    val negSkills = skills collect { case (s, w) if w < 0 =>
+    val negSkills = skills.collect { case (s, w) if w < 0 =>
       err(s"Skill $s of student $id has a negative weight of $w")
-    }
+    }.foldLeft(succ()) { _ merge _ }
 
-    val negWeights = weights collect { case (c, w) if w < 0 =>
+    val negWeights = weights.collect { case (c, w) if w < 0 =>
       err(s"The $c of student $id have a negative weight of $w")
-    }
+    }.foldLeft(succ()) { _ merge _ }
 
-    val negPrefs = preferences collect { case (g, w) if w < 0 =>
+    val negPrefs = preferences.collect { case (g, w) if w < 0 =>
       err(s"Preference $g of student $id has a negative weight of $w")
-    }
+    }.foldLeft(succ()) { _ merge _ }
 
-    flatten(emptySpff, emptyWeights, negSkills, negWeights, negPrefs)
+    Seq(emptySpff, emptyWeights, negSkills, negWeights, negPrefs) reduce { _ merge _ }
   }
 }

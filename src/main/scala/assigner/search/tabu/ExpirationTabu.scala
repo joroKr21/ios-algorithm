@@ -16,8 +16,8 @@ import scala.collection.mutable
 class ExpirationTabu(course: Course) extends TabuList {
   val delta       = course.settings.tabuSize
   var currentTime = 0
-  val studentTime = mutable.Map.empty[StudentId, Int] withDefaultValue 0
-  val groupTime   = mutable.Map.empty[GroupId,   Int] withDefaultValue 0
+  val studentTime = mutable.Map.empty[Long, Int] withDefaultValue 0
+  val groupTime   = mutable.Map.empty[Long,   Int] withDefaultValue 0
 
   def setTabu(solution: Solution, move: Move) = {
     move match {
@@ -37,15 +37,15 @@ class ExpirationTabu(course: Course) extends TabuList {
     case FillGroup(g, _) => testGroups(g)
   }
 
-  private def updateStudents(ids: StudentId*) =
+  private def updateStudents(ids: Long*) =
     for (s <- ids) studentTime(s) = currentTime
 
-  private def testStudents(ids: StudentId*) =
+  private def testStudents(ids: Long*) =
     ids forall { currentTime - studentTime(_) < delta }
 
-  private def updateGroups(ids: GroupId*) =
+  private def updateGroups(ids: Long*) =
     for (g <- ids) groupTime(g) = currentTime
 
-  private def testGroups(ids: GroupId*) =
+  private def testGroups(ids: Long*) =
     ids forall { currentTime - groupTime(_) < delta }
 }

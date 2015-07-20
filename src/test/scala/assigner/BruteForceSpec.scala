@@ -25,11 +25,11 @@ class BruteForceSpec extends FlatSpec with Matchers with PropertyChecks with Dat
 
   "brute force" should "generate better solutions than tabu search" in {
     forAll(courses) { course: Course =>
-      whenever(course.validate forall { !_.isInstanceOf[Error] }) {
+      whenever(course.validate.errors.isEmpty) {
         val normalized = course normalized 10
         val assigner   = new Assigner  (normalized)
         val bruteForce = new BruteForce(normalized)
-        val bestTS     =   assigner.solution
+        val bestTS     =   assigner.solution._3
         val bestBF     = bruteForce.solution
         val scoreTS    =   assigner.objective score bestTS
         val scoreBF    = bruteForce.objective score bestBF

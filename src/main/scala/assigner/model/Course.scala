@@ -13,23 +13,23 @@ import assigner._
  * @param weights   global weights for components of the objective function
  */
 case class Course(
-    id:        CourseId,
+    id:        Long,
     settings:  Settings,
     endpoints: Endpoints,
     students:  List[Student],
     groups:    List[Group],
-    skills:    Set[SkillId]        = default.courseSkills,
+    skills:    Set[String]        = default.courseSkills,
     weights:   Map[String, Double] = default.globalWeights) {
 
   /** Should we consider dropping groups in the algorithm? */
-  lazy val dropGroups = students.size < groups.sumBy { _.minSize }
+  def dropGroups = students.size < groups.sumBy { _.minSize }
 
   /** @return map of student ID -> student */
-  def studentMap: Map[StudentId, Student] =
+  def studentMap: Map[Long, Student] =
     students.map { s => s.id -> s }.toMap
 
   /** @return map of group ID -> group */
-  def groupMap: Map[GroupId, Group] =
+  def groupMap: Map[Long, Group] =
     groups.map { g => g.id -> g }.toMap
 
   /** @return `true` if global weights are enabled for this course */
@@ -46,25 +46,23 @@ case class Course(
 
   /**
    * Validate this course's data.
-   * [[Error]]s will prevent the algorithm from running.
-   * [[Warning]]s can be ignored, but are probably faulty input.
-   * @return a sequence of any [[Warning]]s and [[Error]]s in the data.
+   * Errors will prevent the algorithm from running.
+   * Warnings can be ignored, but are probably faulty input.
+   * @return a sequence of any warnings and/or errors in the data.
    */
-  def validate: Seq[Validation] = {
+  def validate: Validation = {
     val set =  settings.validate
     val end = endpoints.validate
-    val ss  = students flatMap { _.validate }
-    val gs  = groups   flatMap { _.validate }
+    val ss  = students.map { _.validate }.foldLeft(succ()) { _ merge _ }
+    val gs  = groups  .map { _.validate }.foldLeft(succ()) { _ merge _ }
 
-    val sameSs = students.map { _.id }.freq collect {
-      case (s, n) if n > 1 =>
-        warn(s"Student $id occurs $n times in the data")
-    }
+    val sameSs = students.map { _.id }.freq.collect {
+      case (s, n) if n > 1 => warn(s"Student $id occurs $n times in the data")
+    }.foldLeft(succ()) { _ merge _ }
 
-    val sameGs = groups.map { _.id }.freq collect {
-      case (g, n) if n > 1 =>
-        warn(s"Group $id occurs $n times in the data")
-    }
+    val sameGs = groups.map { _.id }.freq.collect {
+      case (g, n) if n > 1 => warn(s"Group $id occurs $n times in the data")
+    }.foldLeft(succ()) { _ merge _ }
 
     val mandatoryStudents = students count { _.mandatory }
     val mandatoryGroups   = groups  filter { _.mandatory } sumBy { _.minSize }
@@ -83,10 +81,11 @@ case class Course(
     val studentSkills = students.flatMap { _.skills.keys }.toSet
     val globalSkills  = skills | groups.flatMap { _.skills }.toSet
 
-    val unrelated = maybeWarn(
-      (studentSkills &~ globalSkills).nonEmpty,
+    val unrelated = maybeWarn((studentSkills &~ globalSkills).nonEmpty,
       "Unrelated skills found in student data")
 
-    flatten(set, end, ss, gs, sameSs, sameGs, tooMany, tooFew, notEnough, unrelated)
+    Seq(set, end, ss, gs, sameSs, sameGs, tooMany, tooFew, notEnough, unrelated) reduce {
+      _ merge _
+    }
   }
 }

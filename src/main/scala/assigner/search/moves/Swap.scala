@@ -10,7 +10,7 @@ import org.coinor.opents._
  * @param student1 first student to swap
  * @param student2 second student to swap
  */
-case class Swap(student1: StudentId, student2: StudentId) extends Move {
+case class Swap(student1: Long, student2: Long) extends Move {
   def operateOn(solution: Solution) = solution match {
     case assignment: Assignment =>
       val group1 = assignment groupOf student1

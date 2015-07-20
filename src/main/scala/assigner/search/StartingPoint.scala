@@ -12,7 +12,7 @@ object StartingPoint {
       course.studentMap.sorted mapValues { _ => default.queueId }
 
     val groupMap =
-      course.groupMap.sorted mapValues { _ => SortedSet.empty[StudentId] }
+      course.groupMap.sorted mapValues { _ => SortedSet.empty[Long] }
 
     val queue      = default.queueId -> studentMap.keySet
     val manager    = new Manager(course)
@@ -25,6 +25,7 @@ object StartingPoint {
       }
     }
 
+    // TODO: Find a better way to build the starting point.
 //    val students = course.studentMap partition { _._2.mandatory } match {
 //      case (mandatory, elective) =>
 //        mandatory.toList.shuffle ::: elective.toList.shuffle

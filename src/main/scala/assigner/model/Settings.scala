@@ -18,11 +18,11 @@ case class Settings(
 
   /**
    * Validate the configuration.
-   * [[Error]]s will prevent the algorithm from running.
-   * [[Warning]]s can be ignored, but are probably faulty input.
-   * @return a sequence of any [[Warning]]s and [[Error]]s in the data.
+   * Errors will prevent the algorithm from running.
+   * Warnings can be ignored, but are probably faulty input.
+   * @return a sequence of any warnings and/or errors in the data
    */
-  def validate: Seq[Validation] = {
+  def validate: Validation = {
     val negIt = maybeErr(iterations <= 0,
       s"Non-positive number of iterations: $iterations")
 
@@ -38,6 +38,6 @@ case class Settings(
     val negIm = maybeErr(initialMoves < 0,
       s"Negative number of random initial moves: $initialMoves")
 
-    flatten(negIt, negSp, negTs, tabuIt, negIm)
+    Seq(negIt, negSp, negTs, tabuIt, negIm) reduce { _ merge _ }
   }
 }

@@ -61,17 +61,17 @@ class AssignerSpec extends FlatSpec with Matchers with PropertyChecks with DataG
     val assigner   = new Assigner(course)
     val assignment = assigner.solution
 
-    assignment.studentMap should have size students.size
-    assignment.groupMap   should have size groups.size + 1
+    assignment._3.studentMap should have size students.size
+    assignment._3.groupMap   should have size groups.size + 1
   }
 
   it should "find a local optimum of the objective function" in {
     forAll(courses) { course: Course =>
-      whenever(course.validate forall { !_.isInstanceOf[Error] }) {
+      whenever(course.validate.errors.isEmpty) {
         val assigner     = new Assigner(course normalized 10)
         val manager      = assigner.manager
         val objective    = assigner.objective
-        val solution     = assigner.solution
+        val solution     = assigner.solution._3
         val score        = objective score solution
         val alternatives = Stream.iterate(Iterator(solution), depth) {
           _ flatMap { assignment =>

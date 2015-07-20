@@ -10,7 +10,7 @@ import org.coinor.opents._
  * @param student ID of the student to switch
  * @param group   ID of the group to switch to
  */
-case class Switch(student: StudentId, group: GroupId) extends Move {
+case class Switch(student: Long, group: Long) extends Move {
   def operateOn(solution: Solution) = solution match {
     case assignment: Assignment if assignment.groupOf(student) != group =>
       val oldGroup    = assignment groupOf student

@@ -16,14 +16,14 @@ class BruteForce(course: Course) {
 
   /** Recursive function to generate all possible [[Assignment]]s. */
   def assign(
-      students: SortedMap[StudentId, Student] = students,
-      groups:   SortedMap[GroupId,   Group]   = groups): Iterator[Assignment] =
+      students: SortedMap[Long, Student] = students,
+      groups:   SortedMap[Long,   Group]   = groups): Iterator[Assignment] =
     if (groups.isEmpty ||
         students.size < groups.values.map { _.minSize }.min) {
       if (students.values.exists { _.mandatory } ||
             groups.values.exists { _.mandatory }) Iterator.empty else {
         val studentMap = students mapValues { _ => -1l }
-        val groupMap   = groups   mapValues { _ => SortedSet.empty[StudentId] }
+        val groupMap   = groups   mapValues { _ => SortedSet.empty[Long] }
         val queue      = default.queueId -> students.keySet
         Iterator(Assignment(studentMap, groupMap + queue))
       }

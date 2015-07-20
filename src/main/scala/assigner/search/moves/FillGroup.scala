@@ -11,7 +11,7 @@ import scala.collection.SortedSet
  * [[Move]] to refill an empty [[Group]] from the waiting list.
  * @param group ID of the group to be filled
  */
-case class FillGroup(group: GroupId, students: SortedSet[StudentId])
+case class FillGroup(group: Long, students: SortedSet[Long])
     extends Move {
   def operateOn(solution: Solution) = solution match {
     case assignment: Assignment =>

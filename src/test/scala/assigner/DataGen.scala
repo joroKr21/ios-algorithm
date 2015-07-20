@@ -65,12 +65,12 @@ trait DataGen {
   def studentGen(
         n:            Int,
         skills:       Set[String],
-        friendGen:    Gen[Set[StudentId]],
-        prefGen:      Gen[Map[GroupId, Double]],
+        friendGen:    Gen[Set[Long]],
+        prefGen:      Gen[Map[Long, Double]],
         weightGen:    Gen[Map[String,  Double]] = normalizedLocalWeightGen(),
         mandatoryGen: Gen[Boolean]              = arbitrary[Boolean],
         skillGen:     Gen[Double]               = choose(1, 5),
-        foeGen:       Gen[Set[StudentId]]       = const(Set.empty)):
+        foeGen:       Gen[Set[Long]]       = const(Set.empty)):
       Gen[List[Student]] = sequence {
     for (id <- 1 to n) yield for {
       name        <- alphaStr filter { !_.isEmpty } map capitalize

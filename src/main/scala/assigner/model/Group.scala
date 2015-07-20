@@ -12,20 +12,20 @@ import assigner._
  * @param skills    [[Set]] of skills relevant for this group
  */
 case class Group(
-    id:        GroupId,
+    id:        Long,
     minSize:   Int,
     maxSize:   Int,
     mandatory: Boolean      = default.mandatory,
     name:      String       = default.name,
-    skills:    Set[SkillId] = default.groupSkills) {
+    skills:    Set[String] = default.groupSkills) {
 
   /**
    * Validate this group's data.
-   * [[Error]]s will prevent the algorithm from running.
-   * [[Warning]]s can be ignored, but are probably faulty input.
-   * @return a sequence of any [[Warning]]s and [[Error]]s in the data.
+   * Errors will prevent the algorithm from running.
+   * Warnings can be ignored, but are probably faulty input.
+   * @return a sequence of any warnings and errors in the data.
    */
-  def validate: Seq[Validation] = {
+  def validate: Validation = {
     val queue = maybeErr(id.isQueue,
       s"Group $name has ID of $id, but it is used as the queue ID")
 
@@ -41,6 +41,6 @@ case class Group(
     val minGtMax = maybeErr(minSize > maxSize,
       s"Group $id has min size ($minSize) > max size ($maxSize)")
 
-    flatten(queue, negMin, zeroMax, negMax, minGtMax)
+    Seq(queue, negMin, zeroMax, negMax, minGtMax) reduce { _ merge _ }
   }
 }

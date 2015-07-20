@@ -13,21 +13,21 @@ case class Endpoints(success: String, failure: String) {
 
   /**
    * Validate the endpoint URLs.
-   * [[Error]]s will prevent the algorithm from running.
-   * [[Warning]]s can be ignored, but are probably faulty input.
-   * @return a sequence of any [[Warning]]s and [[Error]]s in the data.
+   * Errors will prevent the algorithm from running.
+   * Warnings can be ignored, but are probably faulty input.
+   * @return a sequence of any warnings and errors in the data.
    */
-  def validate: Seq[Validation] = {
-    val successURL = try { new URL(success); Nil }
+  def validate: Validation = {
+    val successURL = try { new URL(success); succ() }
       catch { case _: MalformedURLException =>
-        err(s"Malformed success endpoint URL: $success").sng
+        err(s"Malformed success endpoint URL: $success")
       }
 
-    val failureURL = try { new URL(failure); Nil }
+    val failureURL = try { new URL(failure); succ() }
       catch { case _: MalformedURLException =>
-        err(s"Malformed failure endpoint URL: $failure").sng
+        err(s"Malformed failure endpoint URL: $failure")
       }
 
-    flatten(successURL, failureURL)
+    successURL merge failureURL
   }
 }
