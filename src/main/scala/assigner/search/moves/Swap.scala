@@ -31,4 +31,7 @@ case class Swap(student1: Long, student2: Long) extends Move {
     case Swap(s1, s2) => Set(student1, student2) == Set(s1, s2)
     case _ => false
   }
+
+  override def hashCode() =
+    Set(student1, student2).hashCode()
 }

@@ -29,4 +29,7 @@ case class Switch(student: Long, group: Long) extends Move {
     case Switch(s, _) => student == s
     case _ => false
   }
+
+  override def hashCode() =
+    student.hashCode()
 }

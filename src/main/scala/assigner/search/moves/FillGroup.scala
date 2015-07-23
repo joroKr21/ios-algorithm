@@ -32,4 +32,7 @@ case class FillGroup(group: Long, students: SortedSet[Long])
     case FillGroup(g, _) => group == g
     case _ => false
   }
+
+  override def hashCode() =
+    group.hashCode()
 }
