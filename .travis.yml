@@ -16,6 +16,8 @@ script:
   # Tricks to avoid unnecessary cache updates
   - find $HOME/.sbt -name "*.lock" | xargs rm
   - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
+  - sbt compile
+  - sbt test
 
 notifications:
   slack: ios-tub:pS3WTwm9juZOQXvN8KMRRbVt
