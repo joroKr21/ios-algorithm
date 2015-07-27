@@ -69,6 +69,8 @@ package object model {
 
   /** Default arguments for domain-specific classes. */
   object default {
+    val host           = "localhost"
+    val port           = 8080
     val queueId        = -1l
     val name           = ""
     val mandatory      = false

@@ -1,7 +1,5 @@
 package assigner.model
 
-import assigner._
-
 import java.net.{MalformedURLException, URL}
 
 /**
@@ -18,16 +16,27 @@ case class Endpoints(success: String, failure: String) {
    * @return a sequence of any warnings and errors in the data.
    */
   def validate: Validation = {
-    val successURL = try { new URL(success); succ() }
-      catch { case _: MalformedURLException =>
-        err(s"Malformed success endpoint URL: $success")
-      }
+    def validateURL(url: String, msg: String) =
+      try   { new URL(url); succ() }
+      catch { case _: MalformedURLException => err(msg) }
 
-    val failureURL = try { new URL(failure); succ() }
-      catch { case _: MalformedURLException =>
-        err(s"Malformed failure endpoint URL: $failure")
-      }
-
+    val successURL = validateURL(success, s"Malformed success endpoint URL: $success")
+    val failureURL = validateURL(failure, s"Malformed failure endpoint URL: $failure")
     successURL merge failureURL
+  }
+
+  /**
+   * Prepend "http://host:port" in front of any relative URLs contained in this object.
+   * @param host the host name or IP address to prepend (default: "localhost")
+   * @param port the HTTP port number to prepend (default: 8080)
+   * @return a new set of endpoints with fully qualified URLs
+   */
+  def qualify(host: String = default.host, port: Int = default.port): Endpoints = {
+    def qualifyURL(url: String) = try { new URL(url).toString }
+      catch { case _: MalformedURLException =>
+        s"http://$host:$port/${url.dropWhile(_ == '/')}"
+      }
+
+    Endpoints(qualifyURL(success), qualifyURL(failure))
   }
 }

@@ -52,7 +52,7 @@ case class Course(
    */
   def validate: Validation = {
     val set =  settings.validate
-    val end = endpoints.validate
+    val end = endpoints.qualify().validate
     val ss  = students.map { _.validate }.foldLeft(succ()) { _ merge _ }
     val gs  = groups  .map { _.validate }.foldLeft(succ()) { _ merge _ }
 
