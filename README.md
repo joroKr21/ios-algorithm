@@ -10,4 +10,4 @@ The project is managed via [`sbt`](http://www.scala-sbt.org/), so you first need
 * To run all tests use the command `sbt test`
 * To run the service endpoint use the command `sbt run re-start [port]`
 
-For more details please visit the [wiki](./wiki).
+For more details please visit the [wiki](../../wiki).
