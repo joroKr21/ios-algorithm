@@ -75,8 +75,11 @@ object SprayService extends App with SimpleRoutingApp with Json4sJacksonSupport 
       detach() {
         entity(as[CourseWithAssignment]) { cwa =>
           val course = cwa.course
-          val studentMap = cwa.studentMap.sorted
           val groupMap = cwa.groupMap.mapValues { _.sorted }.sorted
+          val studentMap = (for {
+            (groupId, students) <- groupMap
+            studentId <- students
+          } yield studentId -> groupId).toMap.sorted
           val assignment = Assignment(studentMap, groupMap)
           Map("score" -> new Objective(course).score(assignment))
         }
@@ -151,6 +154,95 @@ object SprayService extends App with SimpleRoutingApp with Json4sJacksonSupport 
               running -= id // done running this instance
             } onFailure { case t: Throwable =>
               log.error(t, "Error while running job {}", id)
+              val message = write(Validation(errors = t.getMessage :: Nil))
+              val entity  = HttpEntity(`application/json`, message)
+              IO(Http) ? HttpRequest(POST, failure, entity = entity) onComplete {
+                case Success(_) => log.debug("Successfully responded to {}", failure)
+                case Failure(e) => log.error(e, "Error responding to {}",    failure)
+              }
+            }
+
+            raw(message) // reply right away
+          }
+        }
+      }
+    }
+  }
+
+  /** Test a different assignment. */
+  val swap = path("swap") {
+    post {
+      clientIP { ip =>
+        log.debug("Accepted request by {}", ip)
+        entity(as[CourseWithAssignment]) { courseWithAssignment =>
+          val course = courseWithAssignment.course
+          val id = course.id
+          val groupMap = courseWithAssignment.groupMap.mapValues { _.sorted }.sorted
+          val studentMap = (for {
+            (groupId, students) <- groupMap
+            studentId <- students
+          } yield studentId -> groupId).toMap.sorted
+          val initialAssignment = Assignment(studentMap, groupMap)
+
+          log.debug("Requested to fill up empty spots for job {}", id)
+          if (running(id)) { // job is still running
+          val message = s"Job $id is still running"
+            log warning message
+            raw(message)
+          } else { // actually do the work
+          implicit val formats = json4sJacksonFormats
+            implicit val timeout = Timeout(5.seconds)
+            val message = s"Filling up empty spots for job $id"
+            log info message
+            val Endpoints(success, failure) =
+              course.endpoints.qualify(host = ip.toString())
+
+            Future { // spawn off the heavy lifting asynchronously
+            val validation = course.validate
+              if (validation.errors.nonEmpty) {
+                log.error("Errors trying to fill up the empty spots for job {}", id)
+                validation.errors foreach log.error
+                val entity = HttpEntity(`application/json`, write(validation))
+                IO(Http) ? HttpRequest(POST, failure, entity = entity) onComplete {
+                  case Success(_) => log.debug("Successfully responded to {}", failure)
+                  case Failure(t) => log.error(t, "Error responding to {}",    failure)
+                }
+              } else {
+                if (validation.warnings.nonEmpty) {
+                  log.warning("Warnings while filling up the empty spots for job {}", id)
+                  validation.warnings foreach log.warning
+                }
+
+                val assigner = new Assigner(course)
+                val (initial, moves, assignment) = assigner.swap(initialAssignment)
+
+                val movesLog = moves collect {
+                  case (Swap(s1, s2), score) =>
+                    Map("move" -> "swap", "student1" -> s1, "student2" -> s2, "score" -> score)
+                  case (Switch(s, g), score) =>
+                    Map("move" -> "switch", "student" -> s, "group" -> g, "score" -> score)
+                  case (DropGroup(g), score) =>
+                    Map("move" -> "drop", "group" -> g, "score" -> score)
+                  case (FillGroup(g, ss), score) =>
+                    Map("move" -> "fill", "group" -> g, "students" -> ss, "score" -> score)
+                }
+
+                val result = Map(
+                  "initialStudentMap" -> initial.studentMap,
+                  "initialGroupMap"   -> initial.groupMap,
+                  "movesLog"          -> movesLog,
+                  "studentMap"        -> assignment.studentMap,
+                  "groupMap"          -> assignment.groupMap)
+
+                IO(Http) ? HttpRequest(POST, success, entity = write(result)) onComplete {
+                  case Success(_) => log.debug("Successfully responded to {}", success)
+                  case Failure(e) => log.error(e, "Error responding to {}",    success)
+                }
+              }
+
+              running -= id // done running this instance
+            } onFailure { case t: Throwable =>
+              log.error(t, "Error while filling up the empty spots for job {}", id)
               val message = write(Validation(errors = t.getMessage :: Nil))
               val entity  = HttpEntity(`application/json`, message)
               IO(Http) ? HttpRequest(POST, failure, entity = entity) onComplete {
