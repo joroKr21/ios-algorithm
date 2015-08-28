@@ -30,19 +30,18 @@ import spray.util.LoggingContext
 object SprayService extends App with SimpleRoutingApp with Json4sJacksonSupport {
 
   // ExecutionContext
-  implicit val system = ActorSystem("simple-routing-app")
+  implicit val system  = ActorSystem("simple-routing-app")
+  implicit val timeout = Timeout(5.seconds)
   import system.dispatcher
 
   // logging
   val log = implicitly[LoggingContext]
   // JSON Marshalling
-  val json4sJacksonFormats = DefaultFormats
+  implicit val json4sJacksonFormats = DefaultFormats
   // concurrent Map for tracking running jobs
   val running = TrieMap.empty[Long, Boolean] withDefaultValue false
   // get the port
   val port = if (args.nonEmpty) args.head.toInt else default.port
-  // correct Content-Type for JSON
-  val jsonHeader = `Content-Type`(`application/json`) :: Nil
 
   /**
    * Complete an HTTP response with a raw [[String]] message (as opposed to marshalling the
@@ -54,12 +53,17 @@ object SprayService extends App with SimpleRoutingApp with Json4sJacksonSupport 
     complete(HttpResponse(entity = message))
 
   /**
-   * Create an HTTP entity with a JSON serialized object as the body.
-   * @param a The object to serialize as JSON
-   * @return an [[HttpEntity]] that contains the JSON serialized object
+   * Reply to the specified URL with the specified answer and log the response.
+   * @param answer Reply object to be serialized as JSON
    */
-  def json[A <: AnyRef](a: A)(implicit formats: Formats): HttpEntity =
-    HttpEntity(`application/json`, write(a))
+  def reply[A <: AnyRef](url: String, answer: A)(implicit formats: Formats): Unit = {
+    val headers = `Content-Type`(`application/json`) :: Nil
+    val entity  = HttpEntity(`application/json`, write(answer))
+    IO(Http) ? HttpRequest(POST, url, headers, entity) onComplete {
+      case Success(_) => log.debug("Successfully responded to {}", url)
+      case Failure(e) => log.error(e, "Error responding to {}",    url)
+    }
+  }
 
   /** Echo the HTTP request entity back as a [[String]]. */
   val echo = path("echo") {
@@ -122,8 +126,6 @@ object SprayService extends App with SimpleRoutingApp with Json4sJacksonSupport 
             log warning message
             raw(message)
           } else { // actually do the work
-            implicit val formats = json4sJacksonFormats
-            implicit val timeout = Timeout(5.seconds)
             running    += id -> true
             val message = s"Running job $id"
             log info message
@@ -138,10 +140,10 @@ object SprayService extends App with SimpleRoutingApp with Json4sJacksonSupport 
                 validation.warnings foreach log.warning
               }
 
-              val entity = if (validation.errors.nonEmpty) { // log errors
+              if (validation.errors.nonEmpty) { // log errors
                 log.error("Errors trying to run job {}", id)
                 validation.errors foreach log.error
-                json(validation)
+                reply(failure, validation)
               } else {
                 val assigner = new Assigner(course)
                 val (initial, moves, assignment) = assigner.solution
@@ -157,7 +159,7 @@ object SprayService extends App with SimpleRoutingApp with Json4sJacksonSupport 
                     Map("move" -> "fill", "group" -> g, "students" -> ss, "score" -> obj)
                 }
 
-                json(Map(
+                reply(success, Map(
                   "initialStudentMap" -> initial.studentMap,
                   "initialGroupMap"   -> initial.groupMap,
                   "movesLog"          -> movesLog,
@@ -166,21 +168,9 @@ object SprayService extends App with SimpleRoutingApp with Json4sJacksonSupport 
               }
 
               running -= id // done running this instance
-              entity
-            } onComplete {
-              case Success(entity) =>
-                IO(Http) ? HttpRequest(POST, success, jsonHeader, entity) onComplete {
-                  case Success(_) => log.debug("Successfully responded to {}", success)
-                  case Failure(e) => log.error(e, "Error responding to {}",    success)
-                }
-
-              case Failure(error) =>
-                log.error(error, "Error while running job {}", id)
-                val entity = json(Validation(errors = error.getMessage :: Nil))
-                IO(Http) ? HttpRequest(POST, failure, jsonHeader, entity) onComplete {
-                  case Success(_) => log.debug("Successfully responded to {}", failure)
-                  case Failure(e) => log.error(e, "Error responding to {}",    failure)
-                }
+            } onFailure { case error: Throwable =>
+              log.error(error, "Error while running job {}", id)
+              reply(failure, Validation(errors = error.getMessage :: Nil))
             }
 
             raw(message) // reply right away
@@ -196,19 +186,17 @@ object SprayService extends App with SimpleRoutingApp with Json4sJacksonSupport 
       clientIP { ip =>
         log.debug("Accepted request by {}", ip)
         entity(as[CourseWithAssignment]) { cwa =>
-          val course = cwa.course
-          val id = course.id
-          val groupMap = cwa.groupMap.mapValues { _.sorted }.sorted
+          val course     = cwa.course
+          val id         = course.id
+          val groupMap   = cwa.groupMap.mapValues { _.sorted }.sorted
           val studentMap = (for ((g, ss) <- groupMap; s <- ss) yield s -> g).toMap.sorted
-          val initialAssignment = Assignment(studentMap, groupMap)
+          val assignment = Assignment(studentMap, groupMap)
           log.debug("Requested to fill up empty spots for job {}", id)
           if (running(id)) { // job is still running
             val message = s"Job $id is still running"
             log warning message
             raw(message)
           } else { // actually do the work
-            implicit val formats = json4sJacksonFormats
-            implicit val timeout = Timeout(5.seconds)
             val message = s"Filling up empty spots for job $id"
             log info message
             val Endpoints(success, failure) =
@@ -216,22 +204,19 @@ object SprayService extends App with SimpleRoutingApp with Json4sJacksonSupport 
 
             Future { // spawn off the heavy lifting asynchronously
               val validation = course.validate
-              if (validation.errors.nonEmpty) {
+
+              if (validation.warnings.nonEmpty) { // log warnings
+                log.warning("Warnings while filling up the empty spots for job {}", id)
+                validation.warnings foreach log.warning
+              }
+
+              if (validation.errors.nonEmpty) { // log errors
                 log.error("Errors trying to fill up the empty spots for job {}", id)
                 validation.errors foreach log.error
-                val entity = HttpEntity(`application/json`, write(validation))
-                IO(Http) ? HttpRequest(POST, failure, jsonHeader, entity) onComplete {
-                  case Success(_) => log.debug("Successfully responded to {}", failure)
-                  case Failure(t) => log.error(t, "Error responding to {}",    failure)
-                }
+                reply(failure, validation)
               } else {
-                if (validation.warnings.nonEmpty) {
-                  log.warning("Warnings while filling up the empty spots for job {}", id)
-                  validation.warnings foreach log.warning
-                }
-
-                val assigner = new Assigner(course)
-                val (initial, moves, assignment) = assigner.swap(initialAssignment)
+                val assigner                   = new Assigner(course)
+                val (initial, moves, solution) = assigner swap assignment
 
                 val movesLog = moves collect {
                   case (Swap(s1, s2), obj) =>
@@ -244,28 +229,18 @@ object SprayService extends App with SimpleRoutingApp with Json4sJacksonSupport 
                     Map("move" -> "fill", "group" -> g, "students" -> ss, "score" -> obj)
                 }
 
-                val result = Map(
+                reply(success, Map(
                   "initialStudentMap" -> initial.studentMap,
                   "initialGroupMap"   -> initial.groupMap,
                   "movesLog"          -> movesLog,
-                  "studentMap"        -> assignment.studentMap,
-                  "groupMap"          -> assignment.groupMap)
-
-                IO(Http) ? HttpRequest(POST, success, jsonHeader, write(result)) onComplete {
-                  case Success(_) => log.debug("Successfully responded to {}", success)
-                  case Failure(e) => log.error(e, "Error responding to {}",    success)
-                }
+                  "studentMap"        -> solution.studentMap,
+                  "groupMap"          -> solution.groupMap))
               }
 
               running -= id // done running this instance
             } onFailure { case t: Throwable =>
               log.error(t, "Error while filling up the empty spots for job {}", id)
-              val message = write(Validation(errors = t.getMessage :: Nil))
-              val entity  = HttpEntity(`application/json`, message)
-              IO(Http) ? HttpRequest(POST, failure, jsonHeader, entity) onComplete {
-                case Success(_) => log.debug("Successfully responded to {}", failure)
-                case Failure(e) => log.error(e, "Error responding to {}",    failure)
-              }
+              reply(failure, Validation(errors = t.getMessage :: Nil))
             }
 
             raw(message) // reply right away
