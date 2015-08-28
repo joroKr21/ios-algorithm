@@ -78,7 +78,7 @@ package object model {
     val scale          = 10
     val iterations     = 20
     val initialMoves   = 100
-    val startingPoints = 1
+    val startingPoints = 100
     val tabuSize       = 5
     val studentSkills  = Map.empty[String, Double]
     val groupSkills    = Set.empty[String]

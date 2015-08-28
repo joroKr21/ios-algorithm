@@ -10,10 +10,14 @@ class Assigner(course: Course) {
   val manager    = new Manager  (course)
   val objective  = new Objective(course)
 
-  def solution: (Assignment, Seq[(Move, Double)], Assignment) = {
+  def solution: (Assignment, Seq[(Move, Double)], Assignment) =
+    (1 to course.settings.startingPoints).par
+      .map   { _ => singleSolution }
+      .maxBy { case (_, _, solution) => objective score solution }
+
+  def singleSolution: (Assignment, Seq[(Move, Double)], Assignment) = {
     var log        = List.empty[(Move, Double)]
     val initial    = StartingPoint(course)
-    // TODO: Test the impact of using MultiThreadedTabuSearch
     val tabuSearch = new SingleThreadedTabuSearch(
       initial.clone, manager, objective,
       new TabuQueue(course.settings.tabuSize),
