@@ -10,7 +10,7 @@ import assigner.model._
 import assigner.search._
 import assigner.search.moves._
 
-import org.json4s.DefaultFormats
+import org.json4s.{Formats, DefaultFormats}
 import org.json4s.jackson.Serialization._
 
 import scala.collection.concurrent.TrieMap
@@ -50,6 +50,14 @@ object SprayService extends App with SimpleRoutingApp with Json4sJacksonSupport 
   def raw(message: String): StandardRoute =
     complete(HttpResponse(entity = message))
 
+  /**
+   * Create an HTTP entity with a JSON serialized object as the body.
+   * @param a The object to serialize as JSON
+   * @return an [[HttpEntity]] that contains the JSON serialized object
+   */
+  def json[A <: AnyRef](a: A)(implicit formats: Formats): HttpEntity =
+    HttpEntity(`application/json`, write(a))
+
   /** Echo the HTTP request entity back as a [[String]]. */
   val echo = path("echo") {
     post {
@@ -70,16 +78,13 @@ object SprayService extends App with SimpleRoutingApp with Json4sJacksonSupport 
   }
 
   /** Evaluate an assignment. */
-  def score = path("score") {
+  val score = path("score") {
     post {
       detach() {
         entity(as[CourseWithAssignment]) { cwa =>
-          val course = cwa.course
-          val groupMap = cwa.groupMap.mapValues { _.sorted }.sorted
-          val studentMap = (for {
-            (groupId, students) <- groupMap
-            studentId <- students
-          } yield studentId -> groupId).toMap.sorted
+          val course     = cwa.course
+          val groupMap   = cwa.groupMap.mapValues { _.sorted }.sorted
+          val studentMap = (for ((g, ss) <- groupMap; s <- ss) yield s -> g).toMap.sorted
           val assignment = Assignment(studentMap, groupMap)
           Map("score" -> new Objective(course).score(assignment))
         }
@@ -110,14 +115,10 @@ object SprayService extends App with SimpleRoutingApp with Json4sJacksonSupport 
 
             Future { // spawn off the heavy lifting asynchronously
               val validation = course.validate
-              if (validation.errors.nonEmpty) {
+              val entity     = if (validation.errors.nonEmpty) {
                 log.error("Errors trying to run job {}", id)
                 validation.errors foreach log.error
-                val entity = HttpEntity(`application/json`, write(validation))
-                IO(Http) ? HttpRequest(POST, failure, entity = entity) onComplete {
-                  case Success(_) => log.debug("Successfully responded to {}", failure)
-                  case Failure(t) => log.error(t, "Error responding to {}",    failure)
-                }
+                json(validation)
               } else {
                 if (validation.warnings.nonEmpty) {
                   log.warning("Warnings while running job {}", id)
@@ -138,28 +139,30 @@ object SprayService extends App with SimpleRoutingApp with Json4sJacksonSupport 
                     Map("move" -> "fill", "group" -> g, "students" -> ss, "score" -> score)
                 }
 
-                val result = Map(
+                json(Map(
                   "initialStudentMap" -> initial.studentMap,
                   "initialGroupMap"   -> initial.groupMap,
                   "movesLog"          -> movesLog,
                   "studentMap"        -> assignment.studentMap,
-                  "groupMap"          -> assignment.groupMap)
-
-                IO(Http) ? HttpRequest(POST, success, entity = write(result)) onComplete {
-                  case Success(_) => log.debug("Successfully responded to {}", success)
-                  case Failure(e) => log.error(e, "Error responding to {}",    success)
-                }
+                  "groupMap"          -> assignment.groupMap))
               }
 
               running -= id // done running this instance
-            } onFailure { case t: Throwable =>
-              log.error(t, "Error while running job {}", id)
-              val message = write(Validation(errors = t.getMessage :: Nil))
-              val entity  = HttpEntity(`application/json`, message)
-              IO(Http) ? HttpRequest(POST, failure, entity = entity) onComplete {
-                case Success(_) => log.debug("Successfully responded to {}", failure)
-                case Failure(e) => log.error(e, "Error responding to {}",    failure)
-              }
+              entity
+            } onComplete {
+              case Success(entity) =>
+                IO(Http) ? HttpRequest(POST, success, entity = entity) onComplete {
+                  case Success(_) => log.debug("Successfully responded to {}", success)
+                  case Failure(t) => log.error(t, "Error responding to {}",    success)
+                }
+
+              case Failure(error) =>
+                log.error(error, "Error while running job {}", id)
+                val entity = json(Validation(errors = error.getMessage :: Nil))
+                IO(Http) ? HttpRequest(POST, failure, entity = entity) onComplete {
+                  case Success(_) => log.debug("Successfully responded to {}", failure)
+                  case Failure(e) => log.error(e, "Error responding to {}",    failure)
+                }
             }
 
             raw(message) // reply right away
@@ -259,6 +262,6 @@ object SprayService extends App with SimpleRoutingApp with Json4sJacksonSupport 
   }
 
   startServer(interface = default.host, port = port) {
-    echo ~ status ~ run
+    echo ~ status ~ score ~ run
   }
 }
