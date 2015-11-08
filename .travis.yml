@@ -3,10 +3,6 @@ language: scala
 scala:
   - 2.11.6
 
-jdk:
-  - oraclejdk7
-  - openjdk7
-
 cache:
   directories:
     - $HOME/.ivy2/cache
@@ -17,7 +13,8 @@ script:
   - find $HOME/.sbt -name "*.lock" | xargs rm
   - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
   - sbt compile
-  - sbt test
+  - ruby wrap.rb sbt test
 
 notifications:
+  email: false
   slack: ios-tub:pS3WTwm9juZOQXvN8KMRRbVt
